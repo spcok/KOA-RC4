@@ -21,7 +21,7 @@ import FirstAidLog from './features/safety/tabs/FirstAid';
 import SafetyDrills from './features/safety/tabs/SafetyDrills';
 import SiteMaintenance from './features/safety/tabs/SiteMaintenance';
 import ReportsDashboard from './features/reports/ReportsDashboard';
-import { processSyncQueue, syncInitialData, startRealtimeSubscription } from './lib/syncEngine';
+import { processSyncQueue, prune14DayCache, startRealtimeSubscription } from './lib/syncEngine';
 
 const Placeholder = ({ title, phase }: { title: string, phase: string }) => (
   <div className="p-8">
@@ -42,8 +42,8 @@ export default function App() {
 
   useEffect(() => {
     if (session) {
-      // 1. Pull cache
-      syncInitialData();
+      // 1. Run Janitor
+      prune14DayCache();
       
       // 2. Start Realtime
       const sub = startRealtimeSubscription();
@@ -62,7 +62,6 @@ export default function App() {
   // Network Resilience
   useEffect(() => {
     const handleOnline = () => {
-      console.log('Network online, processing sync queue...');
       processSyncQueue();
     };
     window.addEventListener('online', handleOnline);

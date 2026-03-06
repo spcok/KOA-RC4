@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Animal, AnimalCategory, LogType, LogEntry } from '../../types';
 import { db } from '../../lib/db';
 import { useTaskData } from '../husbandry/useTaskData';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useHybridQuery } from '../../lib/dataEngine';
 
 export interface EnhancedAnimal extends Animal {
   todayWeight?: LogEntry;
@@ -24,9 +24,9 @@ export interface PendingTask {
 }
 
 export function useDashboardData(activeTab: AnimalCategory, viewDate: string) {
-  const liveAnimalsRaw = useLiveQuery(() => db.animals.toArray());
-  const logsRaw = useLiveQuery(() => db.daily_logs.where('log_date').equals(viewDate).toArray(), [viewDate]);
-  const allLogsRaw = useLiveQuery(() => db.daily_logs.toArray());
+  const liveAnimalsRaw = useHybridQuery<Animal[]>('animals', () => db.animals.toArray(), []);
+  const logsRaw = useHybridQuery<LogEntry[]>('daily_logs', () => db.daily_logs.where('log_date').equals(viewDate).toArray(), [viewDate]);
+  const allLogsRaw = useHybridQuery<LogEntry[]>('daily_logs', () => db.daily_logs.toArray(), []);
   
   const liveAnimals = useMemo(() => liveAnimalsRaw || [], [liveAnimalsRaw]);
   const logs = useMemo(() => logsRaw || [], [logsRaw]);

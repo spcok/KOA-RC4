@@ -4,8 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { TransferType, TransferStatus } from '@/src/types';
 import { useTransfersData } from './useTransfersData';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/src/lib/db';
+import { useAnimalsData } from '../animals/useAnimalsData';
 
 const schema = z.object({
   animal_id: z.string().min(1, 'Animal is required'),
@@ -26,7 +25,7 @@ interface Props {
 
 export default function AddTransferModal({ onClose }: Props) {
   const { addTransfer } = useTransfersData();
-  const animals = useLiveQuery(() => db.animals.toArray(), []);
+  const { animals } = useAnimalsData();
   
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -38,7 +37,7 @@ export default function AddTransferModal({ onClose }: Props) {
   });
 
   const onSubmit = async (data: FormData) => {
-    const animal = await db.animals.get(data.animal_id);
+    const animal = animals.find(a => a.id === data.animal_id);
     await addTransfer({
       ...data,
       animal_name: animal?.name || 'Unknown'

@@ -1,12 +1,18 @@
 import { useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { Incident } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
+import { supabase } from '../../lib/supabase';
 
 export const useIncidentData = () => {
-  const incidents = useLiveQuery(() => db.incidents.toArray()) || [];
+  const incidentsData = useHybridQuery<Incident[]>(
+    'incidents',
+    supabase.from('incidents').select('*'),
+    () => db.incidents.toArray(),
+    []
+  );
+  const incidents = incidentsData || [];
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('ALL');
 
@@ -18,7 +24,7 @@ export const useIncidentData = () => {
 
   const addIncident = async (incident: Omit<Incident, 'id'>) => {
     const newIncident = { ...incident, id: uuidv4() };
-    await mutateOnlineFirst('incidents', newIncident, 'upsert');
+    await mutateOnlineFirst('incidents', newIncident as Record<string, unknown>, 'upsert');
   };
 
   const deleteIncident = async (id: string) => {
@@ -27,7 +33,7 @@ export const useIncidentData = () => {
 
   return {
     incidents: filteredIncidents,
-    isLoading: !incidents,
+    isLoading: incidentsData === undefined,
     searchTerm,
     setSearchTerm,
     filterSeverity,

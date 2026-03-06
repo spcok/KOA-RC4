@@ -4,8 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { MovementType } from '@/src/types';
 import { useMovementsData } from './useMovementsData';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/src/lib/db';
+import { useAnimalsData } from '../animals/useAnimalsData';
 
 const schema = z.object({
   animal_id: z.string().min(1, 'Animal is required'),
@@ -24,7 +23,7 @@ interface Props {
 
 export default function AddMovementModal({ onClose }: Props) {
   const { addMovement } = useMovementsData();
-  const animals = useLiveQuery(() => db.animals.toArray(), []);
+  const { animals } = useAnimalsData();
   
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -35,7 +34,7 @@ export default function AddMovementModal({ onClose }: Props) {
   });
 
   const onSubmit = async (data: FormData) => {
-    const animal = await db.animals.get(data.animal_id);
+    const animal = animals.find(a => a.id === data.animal_id);
     await addMovement({
       ...data,
       animal_name: animal?.name || 'Unknown'

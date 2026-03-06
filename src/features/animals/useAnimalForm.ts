@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { uploadFile } from '../../lib/storageEngine';
 import { Animal, AnimalCategory, HazardRating, ConservationStatus } from '../../types';
 import { getLatinName, getConservationStatus } from '../../services/geminiService';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { mutateOnlineFirst } from '../../lib/dataEngine';
 
 export const animalFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),

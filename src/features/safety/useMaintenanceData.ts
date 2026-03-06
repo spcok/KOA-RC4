@@ -1,19 +1,25 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { MaintenanceLog } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
+import { supabase } from '../../lib/supabase';
 
 export function useMaintenanceData() {
-  const logs = useLiveQuery(() => db.maintenance_logs.toArray()) || [];
-  const isLoading = logs === undefined;
+  const logsData = useHybridQuery<MaintenanceLog[]>(
+    'maintenance_logs',
+    supabase.from('maintenance_logs').select('*'),
+    () => db.maintenance_logs.toArray(),
+    []
+  );
+  const isLoading = logsData === undefined;
+  const logs = logsData || [];
 
   const addLog = async (log: Omit<MaintenanceLog, 'id'>) => {
     const newLog = {
       ...log,
       id: uuidv4(),
     };
-    await mutateOnlineFirst('maintenance_logs', newLog, 'upsert');
+    await mutateOnlineFirst('maintenance_logs', newLog as Record<string, unknown>, 'upsert');
   };
 
   const updateLog = async (log: MaintenanceLog) => {

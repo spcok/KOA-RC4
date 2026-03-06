@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
 import { db } from '../../lib/db';
 import { OrgProfileSettings } from '../../types';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
 
 const DEFAULT_SETTINGS: OrgProfileSettings = {
   id: 'profile',
@@ -14,28 +13,13 @@ const DEFAULT_SETTINGS: OrgProfileSettings = {
 };
 
 export function useOrgSettings() {
-  const [settings, setSettings] = useState<OrgProfileSettings>(DEFAULT_SETTINGS);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      setIsLoading(true);
-      try {
-        const stored = await db.settings.get('profile');
-        setSettings(stored || DEFAULT_SETTINGS);
-      } catch (error) {
-        console.error("Failed to load settings:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadSettings();
-  }, []);
+  const settingsData = useHybridQuery<OrgProfileSettings>('settings', () => db.settings.get('profile'), []);
+  const isLoading = settingsData === undefined;
+  const settings = settingsData || DEFAULT_SETTINGS;
 
   const saveSettings = async (newSettings: OrgProfileSettings) => {
     const settingsToSave = { ...newSettings, id: 'profile' };
-    await mutateOnlineFirst('settings', settingsToSave, 'upsert');
-    setSettings(newSettings);
+    await mutateOnlineFirst('settings', settingsToSave as Record<string, unknown>, 'upsert');
   };
 
   return { settings, isLoading, saveSettings };

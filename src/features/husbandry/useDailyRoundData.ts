@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AnimalCategory, DailyRound } from '../../types';
+import { AnimalCategory, DailyRound, Animal } from '../../types';
 import { db } from '../../lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
 
 interface AnimalCheckState {
     isAlive?: boolean;
@@ -14,10 +13,9 @@ interface AnimalCheckState {
 }
 
 export function useDailyRoundData(viewDate: string) {
-    const liveAnimals = useLiveQuery(() => db.animals.toArray(), []);
+    const liveAnimals = useHybridQuery<Animal[]>('animals', () => db.animals.toArray(), []);
     const allAnimals = useMemo(() => liveAnimals || [], [liveAnimals]);
 
-    const [isLoading, setIsLoading] = useState(true);
     const [roundType, setRoundType] = useState<'Morning' | 'Evening'>('Morning');
     const [activeTab, setActiveTab] = useState<AnimalCategory>(AnimalCategory.OWLS);
     
@@ -26,15 +24,7 @@ export function useDailyRoundData(viewDate: string) {
     const [generalNotes, setGeneralNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        if (liveAnimals !== undefined) {
-            const timer = setTimeout(() => setIsLoading(false), 0);
-            return () => clearTimeout(timer);
-        } else {
-            const timer = setTimeout(() => setIsLoading(false), 500);
-            return () => clearTimeout(timer);
-        }
-    }, [liveAnimals]);
+    const isLoading = liveAnimals === undefined;
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -125,7 +115,6 @@ export function useDailyRoundData(viewDate: string) {
             // Also create log entries for each check if needed, 
             // but for now we just save the round summary for the report.
             
-            console.log('Round signed off successfully!');
             // alert('Round signed off successfully!');
         } catch (error) {
             console.error('Failed to sign off round:', error);

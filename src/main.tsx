@@ -11,7 +11,6 @@ const updateSW = registerSW({
     }
   },
   onOfflineReady() {
-    console.log('🚀 KOA System: Fully optimized for offline use.');
   },
 });
 

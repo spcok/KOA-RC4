@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { ShieldCheck, Loader2, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
-import { db } from '../../../lib/db';
-import { mutateOnlineFirst } from '../../../lib/syncEngine';
+import { mutateOnlineFirst } from '../../../lib/dataEngine';
 import { User, UserRole, RolePermissionConfig } from '../../../types';
 import EditUserModal from './EditUserModal';
+import { useUsersData } from '../useUsersData';
 
-const permissionLabels: Record<keyof Omit<RolePermissionConfig, 'role'>, string> = {
+const permissionLabels: Record<keyof Omit<RolePermissionConfig, 'role' | 'id'>, string> = {
   view_animals: 'View Animals',
   add_animals: 'Add Animals',
   edit_animals: 'Edit Animals',
@@ -49,10 +48,10 @@ const permissionLabels: Record<keyof Omit<RolePermissionConfig, 'role'>, string>
 };
 
 const UsersView: React.FC = () => {
-  const users = useLiveQuery(() => db.users.toArray());
+  const { users, isLoading, deleteUser } = useUsersData();
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  if (!users) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -62,7 +61,7 @@ const UsersView: React.FC = () => {
 
   const handleDelete = async (user: User) => {
     if (window.confirm(`Are you sure you want to delete ${user.name}?`)) {
-      await mutateOnlineFirst('users', { id: user.id }, 'delete');
+      await deleteUser(user.id);
     }
   };
 
@@ -120,9 +119,9 @@ const UsersView: React.FC = () => {
 };
 
 const PermissionsMatrix: React.FC = () => {
-  const roles = useLiveQuery(() => db.role_permissions.toArray());
+  const { rolePermissions: roles, isLoading } = useUsersData();
 
-  if (!roles) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -130,9 +129,9 @@ const PermissionsMatrix: React.FC = () => {
     );
   }
 
-  const permissionKeys = Object.keys(permissionLabels) as (keyof Omit<RolePermissionConfig, 'role'>)[];
+  const permissionKeys = Object.keys(permissionLabels) as (keyof Omit<RolePermissionConfig, 'role' | 'id'>)[];
 
-  const handleToggle = async (role: UserRole, key: keyof Omit<RolePermissionConfig, 'role'>) => {
+  const handleToggle = async (role: UserRole, key: keyof Omit<RolePermissionConfig, 'role' | 'id'>) => {
     let roleConfig = roles.find(r => r.role === role);
     if (!roleConfig) {
       // Initialize missing role permissions

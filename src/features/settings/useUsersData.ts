@@ -1,13 +1,27 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
-import { User } from '../../types';
+import { User, RolePermissionConfig } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
+import { supabase } from '../../lib/supabase';
 
 export function useUsersData() {
-  const usersData = useLiveQuery(() => db.users.toArray());
-  const isLoading = usersData === undefined;
+  const usersData = useHybridQuery<User[]>(
+    'users',
+    supabase.from('users').select('*'),
+    () => db.users.toArray(),
+    []
+  );
+
+  const rolePermissionsData = useHybridQuery<RolePermissionConfig[]>(
+    'role_permissions',
+    supabase.from('role_permissions').select('*'),
+    () => db.role_permissions.toArray(),
+    []
+  );
+
+  const isLoading = usersData === undefined || rolePermissionsData === undefined;
   const users = usersData || [];
+  const rolePermissions = rolePermissionsData || [];
 
   const addUser = async (user: Omit<User, 'id'>) => {
     const id = uuidv4();
@@ -27,5 +41,5 @@ export function useUsersData() {
     await mutateOnlineFirst('users', { id }, 'delete');
   };
 
-  return { users, isLoading, addUser, updateUser, deleteUser };
+  return { users, rolePermissions, isLoading, addUser, updateUser, deleteUser };
 }

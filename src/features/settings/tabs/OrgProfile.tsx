@@ -34,7 +34,6 @@ const OrgProfile: React.FC = () => {
 
   const onSubmit = async (data: OrgProfileSettings) => {
     await saveSettings(data);
-    console.log('Settings saved successfully!');
     // alert('Settings saved successfully!');
   };
 

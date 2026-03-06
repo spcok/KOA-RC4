@@ -1,18 +1,23 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/src/lib/db';
 import { Timesheet, TimesheetStatus } from '@/src/types';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '@/src/lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '@/src/lib/dataEngine';
+import { supabase } from '@/src/lib/supabase';
 
 export function useTimesheetData() {
-  const timesheets = useLiveQuery(() => db.timesheets.toArray(), []);
+  const timesheets = useHybridQuery<Timesheet[]>(
+    'timesheets',
+    supabase.from('timesheets').select('*'),
+    () => db.timesheets.toArray(),
+    []
+  );
 
   const addTimesheet = async (timesheet: Omit<Timesheet, 'id'>) => {
     const newTimesheet = {
       ...timesheet,
       id: uuidv4()
     };
-    await mutateOnlineFirst('timesheets', newTimesheet, 'upsert');
+    await mutateOnlineFirst('timesheets', newTimesheet as unknown as Record<string, unknown>, 'upsert');
   };
 
   const deleteTimesheet = async (id: string) => {
@@ -43,7 +48,7 @@ export function useTimesheetData() {
       ];
       
       for (const seed of seeds) {
-        await mutateOnlineFirst('timesheets', seed, 'upsert');
+        await mutateOnlineFirst('timesheets', seed as unknown as Record<string, unknown>, 'upsert');
       }
     }
   };

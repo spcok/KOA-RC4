@@ -1,7 +1,7 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { UserRole, RolePermissionConfig } from '../types';
-import { mutateOnlineFirst } from '../lib/syncEngine';
+import { mutateOnlineFirst, useHybridQuery } from '../lib/dataEngine';
+import { supabase } from '../lib/supabase';
 import { useEffect } from 'react';
 
 const defaultPermissions: Omit<RolePermissionConfig, 'role'> = {
@@ -47,7 +47,12 @@ const defaultPermissions: Omit<RolePermissionConfig, 'role'> = {
 };
 
 export const useRoleSettings = () => {
-  const roles = useLiveQuery(() => db.role_permissions.toArray(), []);
+  const roles = useHybridQuery<RolePermissionConfig[]>(
+    'role_permissions',
+    supabase.from('role_permissions').select('*'),
+    () => db.role_permissions.toArray(),
+    []
+  );
 
   useEffect(() => {
     if (roles) {

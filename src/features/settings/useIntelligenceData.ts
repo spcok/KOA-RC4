@@ -1,31 +1,15 @@
-import { useState, useEffect } from 'react';
 import { db } from '../../lib/db';
 import { Animal, ConservationStatus } from '../../types';
 import { batchGetSpeciesData } from '../../services/geminiService';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
 
 export function useIntelligenceData() {
-  const [animals, setAnimals] = useState<Animal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadAnimals = async () => {
-      setIsLoading(true);
-      try {
-        const allAnimals = await db.animals.toArray();
-        setAnimals(allAnimals);
-      } catch (error) {
-        console.error("Failed to load animals:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadAnimals();
-  }, []);
+  const animalsData = useHybridQuery<Animal[]>('animals', () => db.animals.toArray(), []);
+  const isLoading = animalsData === undefined;
+  const animals = animalsData || [];
 
   const updateAnimal = async (animal: Animal) => {
     await mutateOnlineFirst('animals', animal, 'upsert');
-    setAnimals(prev => prev.map(a => a.id === animal.id ? animal : a));
   };
 
   const runIUCNScan = async (onProgress: (progress: number) => void) => {

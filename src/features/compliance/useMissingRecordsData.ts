@@ -1,6 +1,8 @@
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useMemo } from 'react';
 import { db } from '../../lib/db';
-import { LogType } from '../../types';
+import { LogType, Animal, LogEntry, ClinicalNote } from '../../types';
+import { useHybridQuery } from '../../lib/dataEngine';
+import { supabase } from '../../lib/supabase';
 
 export interface MissingRecordAlert {
   id: string;
@@ -20,22 +22,41 @@ export interface HusbandryLogStatus {
 }
 
 export function useMissingRecordsData(anchorDate: Date = new Date()) {
-  const alerts = useLiveQuery(async () => {
-    const animals = await db.animals.toArray();
-    const activeAnimals = animals.filter(a => !a.archived);
+  const animalsRaw = useHybridQuery<Animal[]>(
+    'animals',
+    supabase.from('animals').select('*'),
+    () => db.animals.toArray(),
+    []
+  );
+  const dailyLogsRaw = useHybridQuery<LogEntry[]>(
+    'daily_logs',
+    supabase.from('daily_logs').select('*'),
+    () => db.daily_logs.toArray(),
+    []
+  );
+  const medicalLogsRaw = useHybridQuery<ClinicalNote[]>(
+    'medical_logs',
+    supabase.from('medical_logs').select('*'),
+    () => db.medical_logs.toArray(),
+    []
+  );
+
+  const alerts = useMemo(() => {
+    if (!animalsRaw || !dailyLogsRaw || !medicalLogsRaw) return [];
+    
+    const activeAnimals = animalsRaw.filter(a => !a.archived);
     const allAlerts: MissingRecordAlert[] = [];
     const now = new Date();
 
     for (const animal of activeAnimals) {
+      const animalLogs = dailyLogsRaw.filter(l => l.animal_id === animal.id);
+      
       // 1. Audit Weights (Last 14 days)
-      const lastWeightLog = await db.daily_logs
-        .where('animal_id')
-        .equals(animal.id)
+      const weightLogs = animalLogs
         .filter(log => log.log_type === LogType.WEIGHT)
-        .reverse()
-        .sortBy('log_date');
+        .sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
 
-      const latestWeight = lastWeightLog[0];
+      const latestWeight = weightLogs[0];
       const weightThreshold = 14;
       
       if (!latestWeight) {
@@ -65,14 +86,11 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
       }
 
       // 1b. Audit Feeds (Last 7 days)
-      const lastFeedLog = await db.daily_logs
-        .where('animal_id')
-        .equals(animal.id)
+      const feedLogs = animalLogs
         .filter(log => log.log_type === LogType.FEED)
-        .reverse()
-        .sortBy('log_date');
+        .sort((a, b) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime());
 
-      const latestFeed = lastFeedLog[0];
+      const latestFeed = feedLogs[0];
       const feedThreshold = 7;
       
       if (!latestFeed) {
@@ -102,12 +120,9 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
       }
 
       // 2. Audit Medical (Last 365 days)
-      const medicalLogs = await db.medical_logs
-        .where('animal_id')
-        .equals(animal.id)
-        .toArray();
+      const animalMedicalLogs = medicalLogsRaw.filter(l => l.animal_id === animal.id);
 
-      const checkupLogs = medicalLogs
+      const checkupLogs = animalMedicalLogs
         .filter(log => 
           log.note_type.toLowerCase().includes('checkup') || 
           log.note_type.toLowerCase().includes('medical')
@@ -161,40 +176,38 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
       if (a.severity === b.severity) return b.days_overdue - a.days_overdue;
       return a.severity === 'High' ? -1 : 1;
     });
-  }, [anchorDate]);
+  }, [animalsRaw, dailyLogsRaw, medicalLogsRaw]);
 
-  const husbandryStatus = useLiveQuery(async () => {
-    const animals = await db.animals.toArray();
-    const activeAnimals = animals.filter(a => !a.archived);
+  const husbandryStatus = useMemo(() => {
+    if (!animalsRaw || !dailyLogsRaw) return [];
+    
+    const activeAnimals = animalsRaw.filter(a => !a.archived);
     const baseDate = new Date(anchorDate);
     const status: HusbandryLogStatus[] = [];
 
     for (const animal of activeAnimals) {
       const weights = Array(7).fill(false);
       const feeds = Array(7).fill(false);
+      const animalLogs = dailyLogsRaw.filter(l => l.animal_id === animal.id);
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(baseDate);
         date.setDate(date.getDate() + i);
         const dateStr = date.toISOString().split('T')[0];
 
-        const logs = await db.daily_logs
-          .where('animal_id')
-          .equals(animal.id)
-          .filter(log => log.log_date.startsWith(dateStr))
-          .toArray();
+        const dayLogs = animalLogs.filter(log => log.log_date.startsWith(dateStr));
 
-        weights[i] = logs.some(l => l.log_type === LogType.WEIGHT);
-        feeds[i] = logs.some(l => l.log_type === LogType.FEED);
+        weights[i] = dayLogs.some(l => l.log_type === LogType.WEIGHT);
+        feeds[i] = dayLogs.some(l => l.log_type === LogType.FEED);
       }
       status.push({ animal_id: animal.id, animal_name: animal.name, weights, feeds });
     }
     return status;
-  }, [anchorDate]);
+  }, [animalsRaw, dailyLogsRaw, anchorDate]);
 
   return {
-    alerts: alerts || [],
-    husbandryStatus: husbandryStatus || [],
-    isLoading: alerts === undefined || husbandryStatus === undefined
+    alerts,
+    husbandryStatus,
+    isLoading: animalsRaw === undefined || dailyLogsRaw === undefined || medicalLogsRaw === undefined
   };
 }

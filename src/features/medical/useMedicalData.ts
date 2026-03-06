@@ -1,39 +1,35 @@
-import { useState, useEffect, useCallback } from 'react';
 import { ClinicalNote, MARChart, QuarantineRecord, Animal } from '../../types';
 import { db } from '../../lib/db';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
+import { supabase } from '../../lib/supabase';
 
 export function useMedicalData() {
-  const [clinicalNotes, setClinicalNotes] = useState<ClinicalNote[]>([]);
-  const [marCharts, setMarCharts] = useState<MARChart[]>([]);
-  const [quarantineRecords, setQuarantineRecords] = useState<QuarantineRecord[]>([]);
-  const [animals, setAnimals] = useState<Animal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const clinicalNotes = useHybridQuery<ClinicalNote[]>(
+    'medical_logs',
+    supabase.from('medical_logs').select('*'),
+    () => db.medical_logs.toArray(),
+    []
+  );
+  const marCharts = useHybridQuery<MARChart[]>(
+    'mar_charts',
+    supabase.from('mar_charts').select('*'),
+    () => db.mar_charts.toArray(),
+    []
+  );
+  const quarantineRecords = useHybridQuery<QuarantineRecord[]>(
+    'quarantine_records',
+    supabase.from('quarantine_records').select('*'),
+    () => db.quarantine_records.toArray(),
+    []
+  );
+  const animals = useHybridQuery<Animal[]>(
+    'animals',
+    supabase.from('animals').select('*'),
+    () => db.animals.toArray(),
+    []
+  );
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const fetchedAnimals = await db.animals.toArray();
-      setAnimals(fetchedAnimals);
-
-      const fetchedNotes = await db.medical_logs.toArray();
-      setClinicalNotes(fetchedNotes);
-
-      const fetchedCharts = await db.mar_charts.toArray();
-      setMarCharts(fetchedCharts);
-
-      const fetchedQuarantine = await db.quarantine_records.toArray();
-      setQuarantineRecords(fetchedQuarantine);
-    } catch (error) {
-      console.error("Failed to load medical data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const isLoading = clinicalNotes === undefined || marCharts === undefined || quarantineRecords === undefined || animals === undefined;
 
   const addClinicalNote = async (note: Omit<ClinicalNote, 'id' | 'animal_name'>) => {
     const animal = await db.animals.get(note.animal_id);
@@ -43,12 +39,10 @@ export function useMedicalData() {
       animal_name: animal?.name || 'Unknown'
     };
     await mutateOnlineFirst('medical_logs', newNote, 'upsert');
-    await loadData(); // Re-fetch
   };
 
   const updateClinicalNote = async (note: ClinicalNote) => {
     await mutateOnlineFirst('medical_logs', note, 'upsert');
-    await loadData();
   };
 
   const addMarChart = async (chart: Omit<MARChart, 'id' | 'animal_name' | 'administered_dates' | 'status'>) => {
@@ -61,12 +55,10 @@ export function useMedicalData() {
       status: 'Active'
     };
     await mutateOnlineFirst('mar_charts', newChart, 'upsert');
-    await loadData(); // Re-fetch
   };
 
   const updateMarChart = async (chart: MARChart) => {
     await mutateOnlineFirst('mar_charts', chart, 'upsert');
-    await loadData();
   };
 
   const signOffDose = async (chartId: string, dateIso: string) => {
@@ -77,7 +69,6 @@ export function useMedicalData() {
         administered_dates: [...chart.administered_dates, dateIso]
       };
       await mutateOnlineFirst('mar_charts', updatedChart, 'upsert');
-      await loadData(); // Re-fetch
     }
   };
 
@@ -90,13 +81,24 @@ export function useMedicalData() {
       status: 'Active'
     };
     await mutateOnlineFirst('quarantine_records', newRecord, 'upsert');
-    await loadData(); // Re-fetch
   };
 
   const updateQuarantineRecord = async (record: QuarantineRecord) => {
     await mutateOnlineFirst('quarantine_records', record, 'upsert');
-    await loadData();
   };
 
-  return { clinicalNotes, marCharts, quarantineRecords, animals, isLoading, addClinicalNote, updateClinicalNote, addMarChart, updateMarChart, signOffDose, addQuarantineRecord, updateQuarantineRecord };
+  return { 
+    clinicalNotes: clinicalNotes || [], 
+    marCharts: marCharts || [], 
+    quarantineRecords: quarantineRecords || [], 
+    animals: animals || [], 
+    isLoading, 
+    addClinicalNote, 
+    updateClinicalNote, 
+    addMarChart, 
+    updateMarChart, 
+    signOffDose, 
+    addQuarantineRecord, 
+    updateQuarantineRecord 
+  };
 }

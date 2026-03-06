@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { mutateOnlineFirst } from '../../lib/dataEngine';
 import { 
   Animal, 
   AnimalCategory, 
@@ -218,7 +218,6 @@ export const useMigrationEngine = () => {
 
       setProgress(100);
       setPreviewData(null); // Clear preview on success
-      console.log(`Successfully imported ${animalsToImport.length} animals and ${logsToImport.length + movementsToImport.length + medicalToImport.length} records.`);
       // alert(`Successfully imported ${animalsToImport.length} animals and ${logsToImport.length + movementsToImport.length + medicalToImport.length} records.`);
 
     } catch (err) {

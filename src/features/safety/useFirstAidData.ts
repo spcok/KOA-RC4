@@ -1,19 +1,25 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { FirstAidLog } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
+import { supabase } from '../../lib/supabase';
 
 export function useFirstAidData() {
-  const logs = useLiveQuery(() => db.first_aid_logs.toArray()) || [];
-  const isLoading = logs === undefined;
+  const logsData = useHybridQuery<FirstAidLog[]>(
+    'first_aid_logs',
+    supabase.from('first_aid_logs').select('*'),
+    () => db.first_aid_logs.toArray(),
+    []
+  );
+  const isLoading = logsData === undefined;
+  const logs = logsData || [];
 
   const addFirstAid = async (log: Omit<FirstAidLog, 'id'>) => {
     const newLog = {
       ...log,
       id: uuidv4(),
     };
-    await mutateOnlineFirst('first_aid_logs', newLog, 'upsert');
+    await mutateOnlineFirst('first_aid_logs', newLog as Record<string, unknown>, 'upsert');
   };
 
   const deleteFirstAid = async (id: string) => {

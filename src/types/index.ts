@@ -201,6 +201,7 @@ export interface UserProfile {
 }
 
 export interface RolePermissionConfig {
+  id?: string;
   role: UserRole;
   // Animals
   view_animals: boolean;

@@ -1,16 +1,22 @@
 import { useMemo } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { UserRole } from '../types';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { UserRole, RolePermissionConfig } from '../types';
+import { useHybridQuery } from '../lib/dataEngine';
 import { db } from '../lib/db';
+import { supabase } from '../lib/supabase';
 
 export function usePermissions() {
   const { currentUser } = useAuthStore();
 
-  const rolePermissions = useLiveQuery(async () => {
-    if (!currentUser?.role) return null;
-    return await db.role_permissions.get(currentUser.role);
-  }, [currentUser?.role]);
+  const rolePermissions = useHybridQuery<RolePermissionConfig | null>(
+    'role_permissions',
+    supabase.from('role_permissions').select('*').eq('role', currentUser?.role).single(),
+    async () => {
+      if (!currentUser?.role) return null;
+      return (await db.role_permissions.get(currentUser.role)) || null;
+    },
+    [currentUser?.role]
+  );
 
   const permissions = useMemo(() => {
     const role = currentUser?.role || UserRole.VOLUNTEER;

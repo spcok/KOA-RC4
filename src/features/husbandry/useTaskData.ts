@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
-import { Task, User, UserRole } from '../../types';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { Task, User, UserRole, Animal } from '../../types';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
+import { supabase } from '../../lib/supabase';
 
 const mockUsers: User[] = [
   { id: 'u1', email: 'john@example.com', name: 'John Doe', initials: 'JD', role: UserRole.VOLUNTEER },
@@ -10,12 +10,18 @@ const mockUsers: User[] = [
 ];
 
 export const useTaskData = () => {
-  const tasks = useLiveQuery(async () => {
-    return await db.tasks.toArray();
-  }, []);
-  const animals = useLiveQuery(async () => {
-    return await db.animals.toArray();
-  }, []);
+  const tasks = useHybridQuery<Task[]>(
+    'tasks',
+    supabase.from('tasks').select('*'),
+    async () => await db.tasks.toArray(),
+    []
+  );
+  const animals = useHybridQuery<Animal[]>(
+    'animals',
+    supabase.from('animals').select('*'),
+    async () => await db.animals.toArray(),
+    []
+  );
 
   const [filter, setFilter] = useState<'assigned' | 'pending' | 'completed'>('pending');
   const [searchTerm, setSearchTerm] = useState('');

@@ -3,7 +3,7 @@ import { Session, User as SupabaseUser, AuthError } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase';
 import { User, UserRole } from '../types';
 import { db } from '../lib/db';
-import { mutateOnlineFirst } from '../lib/syncEngine';
+import { mutateOnlineFirst } from '../lib/dataEngine';
 
 interface AuthState {
   session: Session | null;

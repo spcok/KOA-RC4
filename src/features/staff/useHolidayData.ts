@@ -1,18 +1,23 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/src/lib/db';
 import { Holiday, LeaveType, HolidayStatus } from '@/src/types';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '@/src/lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '@/src/lib/dataEngine';
+import { supabase } from '@/src/lib/supabase';
 
 export function useHolidayData() {
-  const holidays = useLiveQuery(() => db.holidays.toArray(), []);
+  const holidays = useHybridQuery<Holiday[]>(
+    'holidays',
+    supabase.from('holidays').select('*'),
+    () => db.holidays.toArray(),
+    []
+  );
 
   const addHoliday = async (holiday: Omit<Holiday, 'id'>) => {
     const newHoliday = {
       ...holiday,
       id: uuidv4()
     };
-    await mutateOnlineFirst('holidays', newHoliday, 'upsert');
+    await mutateOnlineFirst('holidays', newHoliday as Record<string, unknown>, 'upsert');
   };
 
   const deleteHoliday = async (id: string) => {
@@ -44,7 +49,7 @@ export function useHolidayData() {
       ];
       
       for (const seed of seeds) {
-        await mutateOnlineFirst('holidays', seed, 'upsert');
+        await mutateOnlineFirst('holidays', seed as Record<string, unknown>, 'upsert');
       }
     }
   };

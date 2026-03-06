@@ -1,18 +1,23 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/src/lib/db';
 import { ExternalTransfer, TransferType, TransferStatus } from '@/src/types';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '@/src/lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '@/src/lib/dataEngine';
+import { supabase } from '@/src/lib/supabase';
 
 export function useTransfersData() {
-  const transfers = useLiveQuery(() => db.external_transfers.toArray(), []);
+  const transfers = useHybridQuery<ExternalTransfer[]>(
+    'external_transfers',
+    supabase.from('external_transfers').select('*'),
+    () => db.external_transfers.toArray(),
+    []
+  );
 
   const addTransfer = async (transfer: Omit<ExternalTransfer, 'id'>) => {
     const newTransfer = {
       ...transfer,
       id: uuidv4()
     };
-    await mutateOnlineFirst('external_transfers', newTransfer, 'upsert');
+    await mutateOnlineFirst('external_transfers', newTransfer as unknown as Record<string, unknown>, 'upsert');
   };
 
   const seedTransfers = async () => {
@@ -21,7 +26,7 @@ export function useTransfersData() {
       const animals = await db.animals.toArray();
       if (animals.length > 0) {
         const animal = animals[0];
-        const transfers = [
+        const transfersList = [
           {
             id: uuidv4(),
             animal_id: animal.id,
@@ -48,8 +53,8 @@ export function useTransfersData() {
           }
         ];
         
-        for (const t of transfers) {
-            await mutateOnlineFirst('external_transfers', t, 'upsert');
+        for (const t of transfersList) {
+            await mutateOnlineFirst('external_transfers', t as unknown as Record<string, unknown>, 'upsert');
         }
       }
     }

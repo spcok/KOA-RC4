@@ -1,15 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AnimalCategory, LogType, LogEntry } from '../../types';
+import { AnimalCategory, LogType, LogEntry, Animal } from '../../types';
 import { db } from '../../lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
 
 export const useDailyLogData = (viewDate: string, activeCategory: AnimalCategory) => {
   const [isLoading, setIsLoading] = useState(true);
   const [sortOption, setSortOption] = useState('Name');
 
-  const liveAnimals = useLiveQuery(() => db.animals.toArray(), []);
-  const liveLogs = useLiveQuery(() => db.daily_logs.where('log_date').startsWith(viewDate).toArray(), [viewDate]);
+  const liveAnimals = useHybridQuery<Animal[]>('animals', () => db.animals.toArray(), []);
+  const liveLogs = useHybridQuery<LogEntry[]>('daily_logs', () => db.daily_logs.where('log_date').startsWith(viewDate).toArray(), [viewDate]);
 
   const animals = useMemo(() => {
     const allAnimals = liveAnimals || [];

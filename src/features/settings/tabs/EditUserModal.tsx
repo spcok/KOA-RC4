@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../../../types';
-import { mutateOnlineFirst } from '../../../lib/syncEngine';
+import { mutateOnlineFirst } from '../../../lib/dataEngine';
 
 interface EditUserModalProps {
   user: User;

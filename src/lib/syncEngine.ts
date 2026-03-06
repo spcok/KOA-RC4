@@ -1,28 +1,72 @@
 import { db, AppDatabase } from './db';
 import { supabase } from './supabase';
-import { Animal, User, LogEntry, ClinicalNote } from '../types';
 
-export async function syncInitialData() {
+/**
+ * prune14DayCache
+ * Automated Janitor: Deletes time-series records older than 14 days from local cache.
+ */
+export async function prune14DayCache() {
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+  const isoDate = fourteenDaysAgo.toISOString();
+
   try {
-    // Fetch animals and users
-    const [animals, users] = await Promise.all([
-      supabase.from('animals').select('*'),
-      supabase.from('users').select('*')
+    await Promise.all([
+      db.daily_logs.where('log_date').below(isoDate).delete(),
+      db.tasks.where('due_date').below(isoDate).delete(),
+      db.medical_logs.where('date').below(isoDate).delete()
     ]);
-
-    if (animals.data) await db.animals.bulkPut(animals.data as Animal[]);
-    if (users.data) await db.users.bulkPut(users.data as User[]);
-
-    // Fetch logs
-    const [dailyLogs, medicalLogs] = await Promise.all([
-      supabase.from('daily_logs').select('*'),
-      supabase.from('medical_logs').select('*')
-    ]);
-
-    if (dailyLogs.data) await db.daily_logs.bulkPut(dailyLogs.data as LogEntry[]);
-    if (medicalLogs.data) await db.medical_logs.bulkPut(medicalLogs.data as ClinicalNote[]);
   } catch (error) {
-    console.error('Error syncing initial data:', error);
+    console.error('Janitor Error:', error);
+  }
+}
+
+/**
+ * forceHydrateFromCloud
+ * Nuke & Rebuild: Paginated download of all records from Supabase into Dexie.
+ */
+export async function forceHydrateFromCloud() {
+  const tables = [
+    'animals', 'daily_logs', 'medical_logs', 'tasks', 'users', 
+    'role_permissions', 'settings', 'contacts', 'zla_documents',
+    'safety_drills', 'maintenance_logs', 'first_aid_logs', 'incidents', 'daily_rounds'
+  ];
+
+  try {
+    // 1. Nuke
+    await Promise.all(tables.map(t => {
+      const table = db[t as keyof AppDatabase] as import('dexie').Table<unknown, string | number>;
+      return table.clear();
+    }));
+
+    // 2. Rebuild with pagination
+    for (const table of tables) {
+      let page = 0;
+      const pageSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from(table)
+          .select('*')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const dbTable = db[table as keyof AppDatabase] as import('dexie').Table<unknown, string | number>;
+          await dbTable.bulkPut(data);
+          if (data.length < pageSize) hasMore = false;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error('Hydration Error:', error);
+    return false;
   }
 }
 
@@ -44,76 +88,6 @@ export async function processSyncQueue() {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function mutateOnlineFirst(tableName: keyof AppDatabase, payload: any, operation: 'upsert' | 'delete' = 'upsert') {
-  const table = db[tableName] as import('dexie').Table<unknown, string>;
-  try {
-    // Try online
-    if (operation === 'upsert') {
-      await supabase.from(tableName).upsert(payload).throwOnError();
-      // Update local cache
-      await table.put(payload);
-    } else {
-      await supabase.from(tableName).delete().eq('id', payload.id as string).throwOnError();
-      // Update local cache
-      await table.delete(payload.id as string);
-    }
-  } catch (error) {
-    console.warn('Offline mode: queuing mutation', error);
-    // Queue for later
-    await db.sync_queue.add({
-      table_name: tableName,
-      operation,
-      payload,
-      created_at: new Date().toISOString()
-    });
-    // Update local cache anyway
-    if (operation === 'upsert') {
-      await table.put(payload);
-    } else {
-      await table.delete(payload.id as string);
-    }
-  }
-}
-
-export async function pushLegacyDataToCloud() {
-  const syncOrder = [
-    'settings', 'role_permissions', 'users', 'contacts', 'zla_documents',
-    'animals',
-    'daily_logs', 'medical_logs', 'tasks', 'daily_rounds', 'mar_charts', 'quarantine_records', 'internal_movements', 'external_transfers', 'timesheets', 'holidays', 'incidents', 'maintenance_logs', 'safety_drills', 'first_aid_logs'
-  ];
-
-  try {
-    for (const tableName of syncOrder) {
-      let records: Record<string, unknown>[] = [];
-      const targetTableName = tableName;
-
-      records = await db.table(tableName).toArray();
-
-      if (records.length === 0) {
-        console.log(`No records found for ${tableName} (local), skipping.`);
-        continue;
-      }
-
-      console.log(`Syncing ${records.length} records for ${tableName} to cloud...`);
-
-      for (let i = 0; i < records.length; i += 500) {
-        const chunk = records.slice(i, i + 500);
-        const { error } = await supabase.from(targetTableName).upsert(chunk);
-        if (error) {
-          console.error(`Error syncing chunk for ${targetTableName}:`, error);
-          throw error;
-        }
-      }
-      console.log(`Successfully synced ${tableName} to cloud.`);
-    }
-    return true;
-  } catch (error) {
-    console.error('Error pushing legacy data to cloud:', error);
-    throw error;
-  }
-}
-
 export function startRealtimeSubscription() {
   const channel = supabase.channel('koa-db-changes')
     .on(
@@ -121,7 +95,6 @@ export function startRealtimeSubscription() {
       { event: '*', schema: 'public' },
       async (payload) => {
         const { table, eventType } = payload;
-        console.log(`📡 Realtime Sync: ${eventType} on ${table}`);
 
         const dbTable = db[table as keyof AppDatabase] as import('dexie').Table<unknown, string | number>;
         if (!dbTable) return;
@@ -141,3 +114,4 @@ export function startRealtimeSubscription() {
 
   return channel;
 }
+

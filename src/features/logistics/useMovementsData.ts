@@ -1,11 +1,16 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { InternalMovement, MovementType } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { mutateOnlineFirst } from '../../lib/syncEngine';
+import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
+import { supabase } from '../../lib/supabase';
 
 export function useMovementsData() {
-  const movements = useLiveQuery(() => db.internal_movements.toArray(), []);
+  const movements = useHybridQuery<InternalMovement[]>(
+    'internal_movements',
+    supabase.from('internal_movements').select('*'),
+    () => db.internal_movements.toArray(),
+    []
+  );
 
   const addMovement = async (movement: Omit<InternalMovement, 'id' | 'created_by'>) => {
     const newMovement: InternalMovement = {
@@ -13,7 +18,7 @@ export function useMovementsData() {
       id: uuidv4(),
       created_by: 'SYS' // Mock user
     };
-    await mutateOnlineFirst('internal_movements', newMovement, 'upsert');
+    await mutateOnlineFirst('internal_movements', newMovement as unknown as Record<string, unknown>, 'upsert');
   };
 
   const seedMovements = async () => {
@@ -22,7 +27,7 @@ export function useMovementsData() {
       const animals = await db.animals.toArray();
       if (animals.length > 0) {
         const animal = animals[0];
-        const movements = [
+        const movementsList = [
           {
             id: uuidv4(),
             animal_id: animal.id,
@@ -45,8 +50,8 @@ export function useMovementsData() {
           }
         ];
         
-        for (const m of movements) {
-            await mutateOnlineFirst('internal_movements', m, 'upsert');
+        for (const m of movementsList) {
+            await mutateOnlineFirst('internal_movements', m as unknown as Record<string, unknown>, 'upsert');
         }
       }
     }
