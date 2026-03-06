@@ -4,6 +4,7 @@ import { ShieldCheck, Loader2, Trash2, UserPlus, AlertTriangle } from 'lucide-re
 import { db } from '../../../lib/db';
 import { mutateOnlineFirst } from '../../../lib/syncEngine';
 import { User, UserRole, RolePermissionConfig } from '../../../types';
+import EditUserModal from './EditUserModal';
 
 const permissionLabels: Record<keyof Omit<RolePermissionConfig, 'role'>, string> = {
   view_animals: 'View Animals',
@@ -28,6 +29,7 @@ const permissionLabels: Record<keyof Omit<RolePermissionConfig, 'role'>, string>
 
 const UsersView: React.FC = () => {
   const users = useLiveQuery(() => db.users.toArray());
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   if (!users) {
     return (
@@ -79,15 +81,19 @@ const UsersView: React.FC = () => {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => handleDelete(user)} className="text-red-600 hover:text-red-800">
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => setEditingUser(user)} className="text-indigo-600 hover:text-indigo-800">Edit</button>
+                    <button onClick={() => handleDelete(user)} className="text-red-600 hover:text-red-800">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {editingUser && <EditUserModal user={editingUser} onClose={() => setEditingUser(null)} />}
     </div>
   );
 };
@@ -105,7 +111,32 @@ const PermissionsMatrix: React.FC = () => {
 
   const permissionKeys = Object.keys(permissionLabels) as (keyof Omit<RolePermissionConfig, 'role'>)[];
 
-  const handleToggle = async (roleConfig: RolePermissionConfig, key: keyof Omit<RolePermissionConfig, 'role'>) => {
+  const handleToggle = async (role: UserRole, key: keyof Omit<RolePermissionConfig, 'role'>) => {
+    let roleConfig = roles.find(r => r.role === role);
+    if (!roleConfig) {
+      // Initialize missing role permissions
+      roleConfig = {
+        role,
+        view_animals: false,
+        edit_animals: false,
+        view_daily_logs: false,
+        view_tasks: false,
+        view_daily_rounds: false,
+        view_medical: false,
+        edit_medical: false,
+        view_movements: false,
+        view_incidents: false,
+        view_maintenance: false,
+        view_safety_drills: false,
+        view_first_aid: false,
+        view_timesheets: false,
+        view_holidays: false,
+        view_missing_records: false,
+        generate_reports: false,
+        view_settings: false,
+        manage_access_control: false
+      };
+    }
     const updatedRole = { ...roleConfig, [key]: !roleConfig[key] };
     await mutateOnlineFirst('role_permissions', updatedRole);
   };
@@ -127,12 +158,14 @@ const PermissionsMatrix: React.FC = () => {
               <td className="px-4 py-3 font-bold text-slate-900">{permissionLabels[key]}</td>
               {Object.values(UserRole).map(role => {
                 const roleConfig = roles.find(r => r.role === role);
+                const isAdminOrOwner = role === UserRole.ADMIN || role === UserRole.OWNER;
                 return (
                   <td key={role} className="px-4 py-3 text-center">
                     <input
                       type="checkbox"
-                      checked={roleConfig ? roleConfig[key] : false}
-                      onChange={() => roleConfig && handleToggle(roleConfig, key)}
+                      checked={isAdminOrOwner ? true : (roleConfig ? roleConfig[key] : false)}
+                      disabled={isAdminOrOwner}
+                      onChange={() => !isAdminOrOwner && handleToggle(role, key)}
                       className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
                     />
                   </td>

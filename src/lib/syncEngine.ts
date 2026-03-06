@@ -52,6 +52,7 @@ export async function processSyncQueue() {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function mutateOnlineFirst(tableName: keyof AppDatabase, payload: any, operation: 'upsert' | 'delete' = 'upsert') {
   const table = db[tableName] as import('dexie').Table<unknown, string>;
   try {

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Session, User as SupabaseUser, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { User, UserRole } from '../types';
+import { User } from '../types';
 import { db } from '../lib/db';
 import { mutateOnlineFirst } from '../lib/syncEngine';
 
@@ -85,32 +85,10 @@ async function syncUserRole(supabaseUser: SupabaseUser, set: (state: Partial<Aut
         isLoading: false 
       });
     } else {
-      // 2. If localUser does NOT exist, check total user count
-      const count = await db.users.count();
-
-      if (count === 0) {
-        // 3. The First Admin Rule: Auto-create as OWNER
-        const newUser: User = {
-          id: supabaseUser.id,
-          email: supabaseUser.email,
-          name: supabaseUser.user_metadata?.name || 'System Admin',
-          role: UserRole.OWNER,
-          initials: supabaseUser.user_metadata?.initials || 'SA',
-          job_position: 'Administrator'
-        };
-        await mutateOnlineFirst('users', newUser, 'upsert');
-        set({ 
-          session: (await supabase.auth.getSession()).data.session, 
-          user: supabaseUser, 
-          currentUser: newUser, 
-          isLoading: false 
-        });
-      } else {
-        // 4. Unauthorized user (Supabase account exists but not in local whitelist)
-        console.warn('Unauthorized access attempt:', supabaseUser.email);
-        await supabase.auth.signOut();
-        set({ session: null, user: null, currentUser: null, isLoading: false });
-      }
+      // 2. If localUser does NOT exist, treat as unauthorized
+      console.warn('Unauthorized access attempt: User not found in local database', supabaseUser.email);
+      await supabase.auth.signOut();
+      set({ session: null, user: null, currentUser: null, isLoading: false });
     }
   } catch (error) {
     console.error('Error syncing user role:', error);
