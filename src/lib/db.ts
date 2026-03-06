@@ -27,7 +27,7 @@ export class AppDatabase extends Dexie {
 
   constructor() {
     super('KentOwlAcademyDB');
-    this.version(17).stores({
+    this.version(18).stores({
       animals: 'id, name, species, category, location',
       logEntries: 'id, animal_id, log_type, log_date',
       daily_logs: 'id, animal_id, log_type, log_date, created_at',
@@ -40,7 +40,7 @@ export class AppDatabase extends Dexie {
       timesheets: 'id, staff_name, date, status',
       holidays: 'id, staff_name, status',
       users: 'id, email, name, role',
-      role_permissions: 'role, view_animals, edit_animals, view_daily_logs, view_tasks, view_daily_rounds, view_medical, edit_medical, view_movements, view_incidents, view_maintenance, view_safety_drills, view_first_aid, view_timesheets, view_holidays, view_missing_records, generate_reports, view_settings, manage_access_control',
+      role_permissions: 'role, view_animals, add_animals, edit_animals, archive_animals, delete_animals, view_daily_logs, create_daily_logs, edit_daily_logs, view_tasks, complete_tasks, manage_tasks, view_daily_rounds, log_daily_rounds, view_medical, add_clinical_notes, prescribe_medications, administer_medications, manage_quarantine, view_movements, log_internal_movements, manage_external_transfers, view_incidents, report_incidents, manage_incidents, view_maintenance, report_maintenance, resolve_maintenance, view_safety_drills, view_first_aid, submit_timesheets, manage_all_timesheets, request_holidays, approve_holidays, view_missing_records, manage_zla_documents, generate_reports, view_settings, manage_users, manage_roles',
       settings: 'id',
       contacts: 'id, name, role',
       zla_documents: 'id, name, category',

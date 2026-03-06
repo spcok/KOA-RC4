@@ -5,7 +5,8 @@ import {
   ArrowLeftRight, ShieldAlert, Stethoscope, Heart, Wrench,
   AlertOctagon, Clock, Settings as SettingsIcon, LogOut, Menu, Power, X,
   ChevronLeft, ChevronRight,
-  HelpCircle, FileText, Calendar, ClipboardCheck, Wifi, WifiOff, ShieldCheck
+  HelpCircle, FileText, Calendar, ClipboardCheck, Wifi, WifiOff, ShieldCheck,
+  ZoomIn, ZoomOut
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -61,14 +62,27 @@ const Layout: React.FC<LayoutProps> = () => {
   const { 
     view_daily_logs, view_tasks, view_medical, view_movements, 
     view_daily_rounds, view_maintenance, view_incidents, 
-    view_first_aid, view_safety_drills, view_timesheets, 
-    view_holidays, view_missing_records, generate_reports, 
+    view_first_aid, view_safety_drills, submit_timesheets, 
+    request_holidays, view_missing_records, generate_reports, 
     view_settings 
   } = usePermissions();
   const { activeShift, clockIn, clockOut, orgProfile } = useAppData();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [textSize, setTextSize] = useState<'text-sm' | 'text-base' | 'text-lg' | 'text-xl'>('text-base');
+
+  const increaseTextSize = () => {
+    const sizes: ('text-sm' | 'text-base' | 'text-lg' | 'text-xl')[] = ['text-sm', 'text-base', 'text-lg', 'text-xl'];
+    const currentIndex = sizes.indexOf(textSize);
+    if (currentIndex < sizes.length - 1) setTextSize(sizes[currentIndex + 1]);
+  };
+
+  const decreaseTextSize = () => {
+    const sizes: ('text-sm' | 'text-base' | 'text-lg' | 'text-xl')[] = ['text-sm', 'text-base', 'text-lg', 'text-xl'];
+    const currentIndex = sizes.indexOf(textSize);
+    if (currentIndex > 0) setTextSize(sizes[currentIndex - 1]);
+  };
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -120,8 +134,8 @@ const Layout: React.FC<LayoutProps> = () => {
         <NavItem to="/safety-drills" icon={AlertOctagon} label="Safety Drills" permission={view_safety_drills} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
         <SectionHeader title="Staff" isSidebarCollapsed={isSidebarCollapsed} />
-        <NavItem to="/timesheets" icon={Clock} label="Time Sheets" permission={view_timesheets} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
-        <NavItem to="/holidays" icon={Calendar} label="Holiday Registry" permission={view_holidays} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+        <NavItem to="/timesheets" icon={Clock} label="Time Sheets" permission={submit_timesheets} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+        <NavItem to="/holidays" icon={Calendar} label="Holiday Registry" permission={request_holidays} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
         <SectionHeader title="Compliance" isSidebarCollapsed={isSidebarCollapsed} />
         <NavItem to="/compliance" icon={ShieldCheck} label="ZLA Compliance" permission={view_missing_records} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
@@ -130,6 +144,27 @@ const Layout: React.FC<LayoutProps> = () => {
         <SectionHeader title="System" isSidebarCollapsed={isSidebarCollapsed} />
         <NavItem to="/settings" icon={SettingsIcon} label="Settings" permission={view_settings} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
         <NavItem to="/help" icon={HelpCircle} label="Help & Support" permission={true} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+
+        {/* Text Size Controls */}
+        <div className={`px-4 py-4 mt-4 border-t border-slate-800/30 ${isSidebarCollapsed ? 'flex flex-col items-center gap-2' : 'flex items-center justify-between'}`}>
+          {!isSidebarCollapsed && <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Text Size</span>}
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={decreaseTextSize} 
+              className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+              title="Decrease Text Size"
+            >
+              <ZoomOut size={14} />
+            </button>
+            <button 
+              onClick={increaseTextSize} 
+              className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+              title="Increase Text Size"
+            >
+              <ZoomIn size={14} />
+            </button>
+          </div>
+        </div>
       </div>
       <div className="p-4 border-t border-slate-800/50 bg-[#18181a]">
         {!isSidebarCollapsed ? (
@@ -211,7 +246,7 @@ const Layout: React.FC<LayoutProps> = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 relative overflow-x-hidden print:overflow-visible">
+      <main className={`flex-1 flex flex-col min-w-0 relative overflow-x-hidden print:overflow-visible ${textSize}`}>
         {/* Mobile Top Navbar */}
         <header className="md:hidden h-16 bg-[#1c1c1e] border-b border-slate-800 flex items-center justify-between px-4 z-50 no-print shadow-lg shrink-0">
           <div className="flex items-center gap-3">

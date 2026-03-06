@@ -8,7 +8,7 @@ import { AddQuarantineModal } from './AddQuarantineModal';
 import { generateMarChartDocx } from './exportMarChart';
 
 const MedicalRecords: React.FC = () => {
-  const { view_medical, edit_medical } = usePermissions();
+  const { view_medical, add_clinical_notes } = usePermissions();
   const { clinicalNotes, marCharts, quarantineRecords, animals, isLoading, addClinicalNote, addMarChart, addQuarantineRecord, updateQuarantineRecord } = useMedicalData();
   const [activeTab, setActiveTab] = useState<'notes' | 'mar' | 'quarantine'>('notes');
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
@@ -39,7 +39,7 @@ const MedicalRecords: React.FC = () => {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-slate-900">Clinical Records</h1>
-        {edit_medical && (
+        {add_clinical_notes && (
           <button 
             onClick={handleAdd}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm"

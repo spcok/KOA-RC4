@@ -1,8 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Animal, AnimalCategory, LogType } from '../../types';
+import { Animal, AnimalCategory, LogType, LogEntry } from '../../types';
 import { db } from '../../lib/db';
 import { useTaskData } from '../husbandry/useTaskData';
 import { useLiveQuery } from 'dexie-react-hooks';
+
+export interface EnhancedAnimal extends Animal {
+  todayWeight?: LogEntry;
+  todayFeed?: LogEntry;
+  lastFedStr: string;
+  displayId: string;
+}
 
 export interface AnimalStatsData {
   todayWeight?: { weight_grams?: number; value?: string | number; log_date?: string | Date };
@@ -19,11 +26,13 @@ export interface PendingTask {
 export function useDashboardData(activeTab: AnimalCategory, viewDate: string) {
   const liveAnimalsRaw = useLiveQuery(() => db.animals.toArray());
   const logsRaw = useLiveQuery(() => db.daily_logs.where('log_date').equals(viewDate).toArray(), [viewDate]);
+  const allLogsRaw = useLiveQuery(() => db.daily_logs.toArray());
   
   const liveAnimals = useMemo(() => liveAnimalsRaw || [], [liveAnimalsRaw]);
   const logs = useMemo(() => logsRaw || [], [logsRaw]);
+  const allLogs = useMemo(() => allLogsRaw || [], [allLogsRaw]);
   
-  const [filteredAnimals, setFilteredAnimals] = useState<Animal[]>([]);
+  const [filteredAnimals, setFilteredAnimals] = useState<EnhancedAnimal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('alpha-asc');
@@ -97,13 +106,51 @@ export function useDashboardData(activeTab: AnimalCategory, viewDate: string) {
     } else if (sortOption === 'alpha-desc') {
       result.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
     }
+
+    const enhanced = result.map(animal => {
+      const animalLogs = allLogs.filter(l => l.animal_id === animal.id);
+      const todayLogs = logs.filter(l => l.animal_id === animal.id);
+      
+      const todayWeight = todayLogs.find(l => l.log_type === LogType.WEIGHT);
+      const todayFeed = todayLogs.find(l => l.log_type === LogType.FEED);
+      
+      const feedLogs = animalLogs
+        .filter(l => l.log_type === LogType.FEED)
+        .sort((a, b) => {
+          const timeA = a.created_at ? new Date(a.created_at).getTime() : new Date(a.log_date).getTime();
+          const timeB = b.created_at ? new Date(b.created_at).getTime() : new Date(b.log_date).getTime();
+          return timeB - timeA;
+        });
+      
+      const lastFed = feedLogs[0];
+      let lastFedStr = '-';
+      if (lastFed) {
+        const timePart = lastFed.created_at 
+          ? new Date(lastFed.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+          : '';
+        lastFedStr = `${lastFed.value}${timePart ? ' ' + timePart : ''}`;
+      }
+      
+      const isBird = animal.category === AnimalCategory.OWLS || animal.category === AnimalCategory.RAPTORS;
+      const displayId = isBird 
+        ? (animal.ring_number || '-') 
+        : (animal.microchip_id || '-');
+
+      return {
+        ...animal,
+        todayWeight,
+        todayFeed,
+        lastFedStr,
+        displayId
+      };
+    });
     
-    const timer = setTimeout(() => setFilteredAnimals(result), 0);
+    const timer = setTimeout(() => setFilteredAnimals(enhanced), 0);
     return () => clearTimeout(timer);
-  }, [liveAnimals, activeTab, searchTerm, sortOption]);
+  }, [liveAnimals, activeTab, searchTerm, sortOption, logs, allLogs]);
 
   const toggleOrderLock = (locked: boolean) => setIsOrderLocked(locked);
-  const reorderAnimals = (newOrder: Animal[]) => setFilteredAnimals(newOrder);
+  const reorderAnimals = (newOrder: EnhancedAnimal[]) => setFilteredAnimals(newOrder);
   const cycleSort = () => {
     setSortOption(prev => prev === 'alpha-asc' ? 'alpha-desc' : prev === 'alpha-desc' ? 'custom' : 'alpha-asc');
   };

@@ -6,11 +6,11 @@ import { TimesheetStatus } from '@/src/types';
 import { usePermissions } from '../../hooks/usePermissions';
 
 export default function Timesheets() {
-  const { view_timesheets } = usePermissions();
+  const { submit_timesheets } = usePermissions();
   const { timesheets, deleteTimesheet } = useTimesheetData();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  if (!view_timesheets) {
+  if (!submit_timesheets) {
     return (
       <div className="p-8 flex flex-col items-center justify-center h-full min-h-[50vh] space-y-4">
         <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 flex flex-col items-center gap-2 max-w-md text-center">

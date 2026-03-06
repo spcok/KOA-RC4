@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Animal, AnimalCategory } from '../../types';
+import { AnimalCategory } from '../../types';
 import { Heart, AlertCircle, Plus, Calendar, Scale, Drumstick, ArrowUpDown, Loader2, ClipboardCheck, CheckCircle, ChevronUp, ChevronDown, Lock, Unlock } from 'lucide-react';
 import { formatWeightDisplay } from '../../services/weightUtils';
 import AnimalFormModal from '../animals/AnimalFormModal';
-import { useDashboardData } from './useDashboardData';
+import { useDashboardData, EnhancedAnimal } from './useDashboardData';
 import { usePermissions } from '../../hooks/usePermissions';
 
 interface DashboardProps {
-  onSelectAnimal: (animal: Animal) => void;
+  onSelectAnimal: (animal: EnhancedAnimal) => void;
   activeTab: AnimalCategory;
   setActiveTab: (category: AnimalCategory) => void;
   viewDate: string;
@@ -237,37 +237,34 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="w-full overflow-x-auto overflow-y-hidden">
-          <table className="w-full text-left text-[10px] md:text-[11px] lg:text-sm whitespace-nowrap">
+          <table className="w-full text-left text-[10px] md:text-[11px] lg:text-sm">
             <thead className="bg-white border-b border-slate-200 text-slate-600 font-medium">
               <tr>
                 <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Name</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden lg:table-cell">Species</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden lg:table-cell">Ring #</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden lg:table-cell">Status</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Today</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden lg:table-cell">Latest</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden lg:table-cell">Target</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Fed</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Location</th>
+                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden md:table-cell">Species</th>
+                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden lg:table-cell">Ring/Microchip</th>
+                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Today's Weight</th>
+                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Today's Feed</th>
+                <th className={`px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-normal leading-tight ${activeTab === AnimalCategory.OWLS || activeTab === AnimalCategory.RAPTORS ? '' : 'hidden md:table-cell'}`}>Last Fed</th>
+                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden md:table-cell">Location</th>
                 <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {(filteredAnimals || []).map(animal => {
-                const d = animalStats?.animalData?.get(animal.id);
                 return (
                   <tr key={animal.id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => onSelectAnimal(animal)}>
                     <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 font-semibold text-slate-900 whitespace-nowrap">{animal.name}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-500 whitespace-nowrap hidden lg:table-cell">{animal.species}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap hidden lg:table-cell">{animal.ring_number || '-'}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden lg:table-cell">
-                      <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-medium">active</span>
+                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-500 whitespace-nowrap hidden md:table-cell">{animal.species}</td>
+                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap hidden lg:table-cell">{animal.displayId}</td>
+                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap">
+                      {animal.todayWeight ? getWeightDisplay(animal.todayWeight, animal.weight_unit) : '-'}
                     </td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap">{d?.todayWeight ? getWeightDisplay(d.todayWeight, animal.weight_unit) : '-'}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap hidden lg:table-cell">{d?.previousWeight ? getWeightDisplay(d.previousWeight, animal.weight_unit) : '-'}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap hidden lg:table-cell">{animal.flying_weight_g ? formatWeightDisplay(animal.flying_weight_g, animal.weight_unit) : '-'}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap">{d?.todayFeed ? (typeof d.todayFeed.value === 'string' ? d.todayFeed.value : String(d.todayFeed.value || 'Fed')) : '-'}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-blue-500 whitespace-nowrap">{animal.location}</td>
+                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap">
+                      {animal.todayFeed ? (typeof animal.todayFeed.value === 'string' ? animal.todayFeed.value : String(animal.todayFeed.value || 'Fed')) : '-'}
+                    </td>
+                    <td className={`px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-normal text-[10px] leading-tight min-w-[60px] ${activeTab === AnimalCategory.OWLS || activeTab === AnimalCategory.RAPTORS ? '' : 'hidden md:table-cell'}`}>{animal.lastFedStr}</td>
+                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-blue-500 whitespace-nowrap hidden md:table-cell">{animal.location}</td>
                     <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-right whitespace-nowrap">
                       <button className="p-1.5 border border-slate-200 rounded-md hover:bg-slate-100 text-slate-600" onClick={(e) => { e.stopPropagation(); /* handle add action */ }}>
                         <Plus size={16} />

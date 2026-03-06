@@ -1,48 +1,63 @@
-export const analyzeFlightWeather = async (_hourlyData: unknown[]): Promise<string> => {
-  console.log(_hourlyData);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(`### Flight Safety Audit
+import { supabase } from '../lib/supabase';
 
-**Status:** ALL CLEAR
-**Conditions:** Optimal for flight training.
+export const analyzeFlightWeather = async (hourlyData: unknown[]): Promise<string> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
+      body: { 
+        prompt: `Analyze the following weather data for flight safety: ${JSON.stringify(hourlyData)}` 
+      },
+    });
 
-* Wind speeds are within safe limits.
-* No precipitation expected during operational hours.
-* Visibility is excellent.`);
-    }, 1500);
-  });
+    if (error) throw error;
+    
+    return data.text || 'No analysis available.';
+  } catch (error) {
+    console.error('Error analyzing flight weather:', error);
+    throw new Error('Failed to analyze flight weather. Please try again later.', { cause: error });
+  }
 };
 
 export const getLatinName = async (species: string): Promise<string> => {
-  console.log('Fetching latin name for:', species);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      if (species.toLowerCase().includes('barn owl')) resolve('Tyto alba');
-      if (species.toLowerCase().includes('peregrine')) resolve('Falco peregrinus');
-      resolve('');
-    }, 800);
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
+      body: { prompt: `What is the scientific (latin) name for ${species}? Return only the name.` },
+    });
+
+    if (error) throw error;
+    return data.text?.trim() || '';
+  } catch (error) {
+    console.error('Error fetching latin name:', error);
+    return '';
+  }
 };
 
 export const getConservationStatus = async (species: string): Promise<string> => {
-  console.log('Fetching conservation status for:', species);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve('LC');
-    }, 800);
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
+      body: { prompt: `What is the IUCN conservation status code for ${species}? Return only the code.` },
+    });
+
+    if (error) throw error;
+    return data.text?.trim() || 'NE';
+  } catch (error) {
+    console.error('Error fetching conservation status:', error);
+    return 'NE';
+  }
 };
 
 export const batchGetSpeciesData = async (speciesList: string[]): Promise<Record<string, { latin_name: string, conservation_status: string, fun_fact: string }>> => {
-  console.log('Fetching batch species data for:', speciesList);
-  const result: Record<string, { latin_name: string, conservation_status: string, fun_fact: string }> = {};
-  for (const species of speciesList) {
-    result[species] = {
-      latin_name: await getLatinName(species) || 'Unknown',
-      conservation_status: await getConservationStatus(species) || 'NE',
-      fun_fact: 'This species is fascinating!'
-    };
+  try {
+    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
+      body: { 
+        prompt: `Provide latin name, IUCN conservation status code, and a fun fact for the following species: ${speciesList.join(', ')}. Return as JSON.` 
+      },
+    });
+
+    if (error) throw error;
+    return data.json || {};
+  } catch (error) {
+    console.error('Error fetching batch species data:', error);
+    throw new Error('Failed to fetch species data.', { cause: error });
   }
-  return result;
 };
+

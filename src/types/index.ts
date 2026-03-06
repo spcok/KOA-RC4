@@ -204,30 +204,50 @@ export interface RolePermissionConfig {
   role: UserRole;
   // Animals
   view_animals: boolean;
+  add_animals: boolean;
   edit_animals: boolean;
+  archive_animals: boolean;
+  delete_animals: boolean;
   // Husbandry
   view_daily_logs: boolean;
+  create_daily_logs: boolean;
+  edit_daily_logs: boolean;
   view_tasks: boolean;
+  complete_tasks: boolean;
+  manage_tasks: boolean;
   view_daily_rounds: boolean;
+  log_daily_rounds: boolean;
   // Medical
   view_medical: boolean;
-  edit_medical: boolean;
+  add_clinical_notes: boolean;
+  prescribe_medications: boolean;
+  administer_medications: boolean;
+  manage_quarantine: boolean;
   // Logistics
   view_movements: boolean;
-  // Safety (HSE)
+  log_internal_movements: boolean;
+  manage_external_transfers: boolean;
+  // Safety
   view_incidents: boolean;
+  report_incidents: boolean;
+  manage_incidents: boolean;
   view_maintenance: boolean;
+  report_maintenance: boolean;
+  resolve_maintenance: boolean;
   view_safety_drills: boolean;
   view_first_aid: boolean;
-  // Staff Management
-  view_timesheets: boolean;
-  view_holidays: boolean;
-  // Compliance
+  // Staff
+  submit_timesheets: boolean;
+  manage_all_timesheets: boolean;
+  request_holidays: boolean;
+  approve_holidays: boolean;
+  // Compliance & Admin
   view_missing_records: boolean;
+  manage_zla_documents: boolean;
   generate_reports: boolean;
-  // Admin
   view_settings: boolean;
-  manage_access_control: boolean;
+  manage_users: boolean;
+  manage_roles: boolean;
 }
 
 export type User = UserProfile;

@@ -71,12 +71,24 @@ const SystemHealth: React.FC = () => {
 
   const handleFactoryReset = async () => {
     setIsWiping(true);
-    setWipeProgress(20);
+    setWipeProgress(10);
     
     try {
-      await db.close();
-      setWipeProgress(50);
-      await db.delete();
+      // Get all tables except users and role_permissions
+      const tablesToClear = db.tables.filter(table => 
+        table.name !== 'users' && 
+        table.name !== 'role_permissions'
+      );
+      
+      const total = tablesToClear.length;
+      let count = 0;
+      
+      for (const table of tablesToClear) {
+        await table.clear();
+        count++;
+        setWipeProgress(10 + Math.floor((count / total) * 90));
+      }
+      
       setWipeProgress(100);
       
       setTimeout(() => {
@@ -84,7 +96,6 @@ const SystemHealth: React.FC = () => {
       }, 500);
     } catch (err) {
       console.error("Wipe failed:", err);
-      // alert("Failed to wipe database.");
       setIsWiping(false);
     }
   };
@@ -234,7 +245,7 @@ const SystemHealth: React.FC = () => {
               </button>
             </div>
             <p className="text-sm text-slate-600">
-              Are you absolutely sure you want to wipe the database? This will delete all animals, logs, and settings. This action cannot be undone.
+              Are you absolutely sure you want to wipe the database? This will delete all animals, logs, and settings, but will <span className="font-bold text-emerald-600">keep user accounts and permission settings</span>. This action cannot be undone.
             </p>
             <div className="flex gap-3 pt-4">
               <button 
