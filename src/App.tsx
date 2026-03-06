@@ -21,7 +21,7 @@ import FirstAidLog from './features/safety/tabs/FirstAid';
 import SafetyDrills from './features/safety/tabs/SafetyDrills';
 import SiteMaintenance from './features/safety/tabs/SiteMaintenance';
 import ReportsDashboard from './features/reports/ReportsDashboard';
-import { processSyncQueue, pull15DayCache, startRealtimeSubscription } from './lib/syncEngine';
+import { processSyncQueue, syncInitialData, startRealtimeSubscription } from './lib/syncEngine';
 
 const Placeholder = ({ title, phase }: { title: string, phase: string }) => (
   <div className="p-8">
@@ -43,7 +43,7 @@ export default function App() {
   useEffect(() => {
     if (session) {
       // 1. Pull cache
-      pull15DayCache();
+      syncInitialData();
       
       // 2. Start Realtime
       const sub = startRealtimeSubscription();

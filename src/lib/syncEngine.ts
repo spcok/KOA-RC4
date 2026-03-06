@@ -2,11 +2,7 @@ import { db, AppDatabase } from './db';
 import { supabase } from './supabase';
 import { Animal, User, LogEntry, ClinicalNote } from '../types';
 
-export async function pull15DayCache() {
-  const fifteenDaysAgo = new Date();
-  fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-  const isoDate = fifteenDaysAgo.toISOString();
-
+export async function syncInitialData() {
   try {
     // Fetch animals and users
     const [animals, users] = await Promise.all([
@@ -19,18 +15,14 @@ export async function pull15DayCache() {
 
     // Fetch logs
     const [dailyLogs, medicalLogs] = await Promise.all([
-      supabase.from('daily_logs').select('*').gte('log_date', isoDate),
-      supabase.from('medical_logs').select('*').gte('date', isoDate)
+      supabase.from('daily_logs').select('*'),
+      supabase.from('medical_logs').select('*')
     ]);
 
     if (dailyLogs.data) await db.daily_logs.bulkPut(dailyLogs.data as LogEntry[]);
     if (medicalLogs.data) await db.medical_logs.bulkPut(medicalLogs.data as ClinicalNote[]);
-
-    // Cleanup
-    await db.daily_logs.where('log_date').below(isoDate).delete();
-    await db.medical_logs.where('date').below(isoDate).delete();
   } catch (error) {
-    console.error('Error pulling 15-day cache:', error);
+    console.error('Error syncing initial data:', error);
   }
 }
 
@@ -96,22 +88,7 @@ export async function pushLegacyDataToCloud() {
       let records: Record<string, unknown>[] = [];
       const targetTableName = tableName;
 
-      if (tableName === 'daily_logs') {
-        // Handle mapping from local 'logEntries' to remote 'daily_logs'
-        // The app uses 'logEntries' locally, but Supabase uses 'daily_logs'
-        const logEntries = await db.table('logEntries').toArray();
-        const dailyLogs = await db.table('daily_logs').toArray();
-        
-        // Use logEntries if available, otherwise fall back to daily_logs
-        records = logEntries.length > 0 ? logEntries : dailyLogs;
-        
-        console.log(`Mapped local logEntries (${logEntries.length}) to daily_logs`);
-      } else if (tableName === 'tasks') {
-        records = await db.table('tasks').toArray();
-        console.log(`Syncing ${records.length} tasks`);
-      } else {
-        records = await db.table(tableName).toArray();
-      }
+      records = await db.table(tableName).toArray();
 
       if (records.length === 0) {
         console.log(`No records found for ${tableName} (local), skipping.`);

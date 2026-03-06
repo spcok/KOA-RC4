@@ -5,7 +5,7 @@ import { mutateOnlineFirst } from '../../lib/syncEngine';
 
 export function useSystemHealthData() {
   const animalsRaw = useLiveQuery(() => db.animals.toArray());
-  const logEntriesRaw = useLiveQuery(() => db.logEntries.toArray());
+  const dailyLogsRaw = useLiveQuery(() => db.daily_logs.toArray());
   const tasksRaw = useLiveQuery(() => db.tasks.toArray());
   const usersRaw = useLiveQuery(() => db.users.toArray());
   const syncQueueRaw = useLiveQuery(() => db.sync_queue.toArray());
@@ -24,26 +24,26 @@ export function useSystemHealthData() {
   }, []);
 
   const animals = useMemo(() => animalsRaw || [], [animalsRaw]);
-  const logEntries = useMemo(() => logEntriesRaw || [], [logEntriesRaw]);
+  const dailyLogs = useMemo(() => dailyLogsRaw || [], [dailyLogsRaw]);
   const tasks = useMemo(() => tasksRaw || [], [tasksRaw]);
   const users = useMemo(() => usersRaw || [], [usersRaw]);
   const syncQueueCount = syncQueueRaw?.length || 0;
 
   const storageStats = useMemo(() => {
     const totalAnimals = animals?.length || 0;
-    const totalLogs = logEntries?.length || 0;
+    const totalLogs = dailyLogs?.length || 0;
     const dbSizeEst = JSON.stringify(animals || []).length + 
                       JSON.stringify(tasks || []).length + 
                       JSON.stringify(users || []).length + 
-                      JSON.stringify(logEntries || []).length;
+                      JSON.stringify(dailyLogs || []).length;
     const dbSizeMB = (dbSizeEst / (1024 * 1024)).toFixed(2);
     return { totalAnimals, totalLogs, dbSizeMB };
-  }, [animals, tasks, users, logEntries]);
+  }, [animals, tasks, users, dailyLogs]);
 
   const exportDatabase = async () => {
     const data = {
       animals,
-      log_entries: logEntries,
+      log_entries: dailyLogs,
       tasks,
       users
     };
@@ -61,9 +61,9 @@ export function useSystemHealthData() {
       const data = JSON.parse(content);
       
       // Clear local DB first
-      await db.transaction('rw', db.animals, db.logEntries, db.tasks, db.users, async () => {
+      await db.transaction('rw', db.animals, db.daily_logs, db.tasks, db.users, async () => {
         await db.animals.clear();
-        await db.logEntries.clear();
+        await db.daily_logs.clear();
         await db.tasks.clear();
         await db.users.clear();
       });

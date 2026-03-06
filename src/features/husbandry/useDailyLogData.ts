@@ -9,7 +9,7 @@ export const useDailyLogData = (viewDate: string, activeCategory: AnimalCategory
   const [sortOption, setSortOption] = useState('Name');
 
   const liveAnimals = useLiveQuery(() => db.animals.toArray(), []);
-  const liveLogs = useLiveQuery(() => db.daily_logs.where('log_date').equals(viewDate).toArray(), [viewDate]);
+  const liveLogs = useLiveQuery(() => db.daily_logs.where('log_date').startsWith(viewDate).toArray(), [viewDate]);
 
   const animals = useMemo(() => {
     const allAnimals = liveAnimals || [];

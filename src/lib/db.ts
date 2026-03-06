@@ -3,8 +3,8 @@ import { Animal, LogEntry, Task, ClinicalNote, MARChart, QuarantineRecord, Inter
 
 export class AppDatabase extends Dexie {
   animals!: Table<Animal, string>;
-  logEntries!: Table<LogEntry, string>;
   daily_logs!: Table<LogEntry, string>;
+  daily_logs_v2!: Table<LogEntry, string>; // Placeholder for future migration if needed
   tasks!: Table<Task, string>;
   medical_logs!: Table<ClinicalNote, string>;
   mar_charts!: Table<MARChart, string>;
@@ -27,9 +27,8 @@ export class AppDatabase extends Dexie {
 
   constructor() {
     super('KentOwlAcademyDB');
-    this.version(18).stores({
+    this.version(19).stores({
       animals: 'id, name, species, category, location',
-      logEntries: 'id, animal_id, log_type, log_date',
       daily_logs: 'id, animal_id, log_type, log_date, created_at',
       tasks: 'id, animal_id, due_date, completed',
       medical_logs: 'id, animal_id, date, note_type',
