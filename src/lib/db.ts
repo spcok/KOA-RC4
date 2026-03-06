@@ -31,7 +31,7 @@ export class AppDatabase extends Dexie {
       animals: 'id, name, species, category, location',
       logEntries: 'id, animal_id, log_type, log_date',
       daily_logs: 'id, animal_id, log_type, log_date, created_at',
-      tasks: 'id, animal_id, animalId, dueDate, completed',
+      tasks: 'id, animal_id, due_date, completed',
       medical_logs: 'id, animal_id, date, note_type',
       mar_charts: 'id, animal_id, medication_name',
       quarantine_records: 'id, animal_id, status',

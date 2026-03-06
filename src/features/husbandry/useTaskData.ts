@@ -27,12 +27,12 @@ export const useTaskData = () => {
     return tasks.filter(task => {
       if (filter === 'completed' && !task.completed) return false;
       if (filter === 'pending' && task.completed) return false;
-      if (filter === 'assigned' && (task.assignedTo !== currentUser.id || task.completed)) return false;
+      if (filter === 'assigned' && (task.assigned_to !== currentUser.id || task.completed)) return false;
 
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        const animalName = animals?.find(a => a.id === task.animalId)?.name.toLowerCase() || '';
-        const userName = mockUsers.find(u => u.id === task.assignedTo)?.name.toLowerCase() || '';
+        const animalName = animals?.find(a => a.id === task.animal_id)?.name.toLowerCase() || '';
+        const userName = mockUsers.find(u => u.id === task.assigned_to)?.name.toLowerCase() || '';
         
         return (
           task.title.toLowerCase().includes(searchLower) ||
@@ -48,9 +48,7 @@ export const useTaskData = () => {
   const addTask = async (newTask: Omit<Task, 'id'>) => {
     const taskWithId = { 
       ...newTask, 
-      id: crypto.randomUUID(),
-      animal_id: newTask.animal_id || newTask.animalId,
-      due_date: newTask.due_date || newTask.dueDate
+      id: crypto.randomUUID()
     } as Task;
     await mutateOnlineFirst('tasks', taskWithId, 'upsert');
   };
@@ -59,10 +57,6 @@ export const useTaskData = () => {
     const task = await db.tasks.get(id);
     if (task) {
       const updatedTask = { ...task, ...updates };
-      // Normalize for sync
-      if (updatedTask.animalId) updatedTask.animal_id = updatedTask.animalId;
-      if (updatedTask.dueDate) updatedTask.due_date = updatedTask.dueDate;
-      
       await mutateOnlineFirst('tasks', updatedTask, 'upsert');
     }
   };
@@ -73,10 +67,6 @@ export const useTaskData = () => {
 
   const toggleTaskCompletion = async (task: Task) => {
     const updatedTask = { ...task, completed: !task.completed };
-    // Normalize for sync
-    if (updatedTask.animalId) updatedTask.animal_id = updatedTask.animalId;
-    if (updatedTask.dueDate) updatedTask.due_date = updatedTask.dueDate;
-
     await mutateOnlineFirst('tasks', updatedTask, 'upsert');
   };
 

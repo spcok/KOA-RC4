@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { db } from '../../lib/db';
 import { mutateOnlineFirst } from '../../lib/syncEngine';
 import { 
   Animal, 

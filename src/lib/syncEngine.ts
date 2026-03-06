@@ -52,7 +52,7 @@ export async function processSyncQueue() {
   }
 }
 
-export async function mutateOnlineFirst(tableName: keyof AppDatabase, payload: Record<string, unknown>, operation: 'upsert' | 'delete' = 'upsert') {
+export async function mutateOnlineFirst(tableName: keyof AppDatabase, payload: any, operation: 'upsert' | 'delete' = 'upsert') {
   const table = db[tableName] as import('dexie').Table<unknown, string>;
   try {
     // Try online
@@ -106,14 +106,8 @@ export async function pushLegacyDataToCloud() {
         
         console.log(`Mapped local logEntries (${logEntries.length}) to daily_logs`);
       } else if (tableName === 'tasks') {
-        // Normalize tasks to ensure snake_case fields are populated
-        const tasks = await db.table('tasks').toArray();
-        records = tasks.map(task => ({
-          ...task,
-          animal_id: task.animal_id || task.animalId,
-          due_date: task.due_date || task.dueDate
-        }));
-        console.log(`Normalized ${records.length} tasks for sync`);
+        records = await db.table('tasks').toArray();
+        console.log(`Syncing ${records.length} tasks`);
       } else {
         records = await db.table(tableName).toArray();
       }
@@ -151,14 +145,14 @@ export function startRealtimeSubscription() {
         const { table, eventType } = payload;
         console.log(`📡 Realtime Sync: ${eventType} on ${table}`);
 
-        const dbTable = db[table as keyof AppDatabase];
+        const dbTable = db[table as keyof AppDatabase] as import('dexie').Table<unknown, string | number>;
         if (!dbTable) return;
 
         try {
           if (eventType === 'INSERT' || eventType === 'UPDATE') {
-            await (dbTable as any).put(payload.new);
+            await dbTable.put(payload.new);
           } else if (eventType === 'DELETE') {
-            await (dbTable as any).delete(payload.old.id);
+            await dbTable.delete(payload.old.id);
           }
         } catch (error) {
           console.error(`Realtime Sync Error on ${table}:`, error);

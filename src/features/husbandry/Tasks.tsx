@@ -58,8 +58,8 @@ const Tasks: React.FC = () => {
           toggleTaskCompletion(task);
           return;
       }
-      if (task.type === LogType.HEALTH && task.animalId) {
-          const animal = animals.find(a => a.id === task.animalId);
+      if (task.type === LogType.HEALTH && task.animal_id) {
+          const animal = animals.find(a => a.id === task.animal_id);
           if (animal) { 
               setCompletingTask(task);
               setSelectedAnimalForEntry(animal as Animal);
@@ -75,10 +75,10 @@ const Tasks: React.FC = () => {
       addTask({
           title: newTitle,
           type: newType,
-          animalId: newAnimalId || undefined,
-          dueDate: newDueDate,
+          animal_id: newAnimalId || undefined,
+          due_date: newDueDate,
           recurring: false,
-          assignedTo: newAssignedTo || undefined,
+          assigned_to: newAssignedTo || undefined,
           completed: false
       });
       setShowAddModal(false);
@@ -135,9 +135,9 @@ const Tasks: React.FC = () => {
 
         <div className="space-y-3 pb-24">
             {tasks && tasks.length > 0 ? tasks.map((task: Task) => {
-                const animal = animals.find(a => a.id === task.animalId);
-                const isOverdue = !task.completed && task.dueDate && task.dueDate < new Date().toISOString().split('T')[0];
-                const assignedUser = users?.find((u: User) => u.id === task.assignedTo);
+                const animal = animals.find(a => a.id === task.animal_id);
+                const isOverdue = !task.completed && task.due_date && task.due_date < new Date().toISOString().split('T')[0];
+                const assignedUser = users?.find((u: User) => u.id === task.assigned_to);
 
                 return (
                     <div key={task.id} className={`bg-white rounded-2xl border-2 border-slate-200 border-l-4 overflow-hidden shadow-sm transition-all active:scale-[0.99] flex items-stretch hover:shadow-md ${isOverdue ? 'hover:border-l-rose-500 border-l-rose-500' : 'hover:border-l-emerald-500 border-l-transparent'} ${task.completed ? 'opacity-60 grayscale-[0.5]' : ''}`}>
@@ -149,7 +149,7 @@ const Tasks: React.FC = () => {
                             </div>
                             <h3 className="font-bold text-base text-slate-900 leading-tight mb-2 uppercase tracking-tight">{String(task.title)}</h3>
                             <div className="flex items-center gap-4">
-                                {task.dueDate && <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><Calendar size={12}/> {new Date(task.dueDate).toLocaleDateString()}</span>}
+                                {task.due_date && <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><Calendar size={12}/> {new Date(task.due_date).toLocaleDateString()}</span>}
                                 {animal && <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">{String(animal.name)}</span>}
                             </div>
                         </div>

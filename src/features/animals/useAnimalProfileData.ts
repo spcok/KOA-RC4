@@ -6,7 +6,7 @@ import { mutateOnlineFirst } from '../../lib/syncEngine';
 export function useAnimalProfileData(animalId: string) {
   const animal = useLiveQuery(() => (animalId ? db.animals.get(animalId) : undefined), [animalId]);
   const logs = useLiveQuery(() => (animalId ? db.daily_logs.where('animal_id').equals(animalId).toArray() : []), [animalId]);
-  const tasks = useLiveQuery(() => (animalId ? db.tasks.where('animalId').equals(animalId).toArray() : []), [animalId]);
+  const tasks = useLiveQuery(() => (animalId ? db.tasks.where('animal_id').equals(animalId).toArray() : []), [animalId]);
   
   const [isLoading, setIsLoading] = useState(true);
 

@@ -161,15 +161,13 @@ export interface LogEntry {
 export interface Task {
   id: string;
   animal_id?: string;
-  animalId?: string;
   title: string;
   notes?: string;
-  due_date?: string;
-  dueDate: string;
+  due_date: string;
   completed: boolean;
   type?: LogType;
   recurring?: boolean;
-  assignedTo?: string;
+  assigned_to?: string;
 }
 
 export interface UserPermissions {

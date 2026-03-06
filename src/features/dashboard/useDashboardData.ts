@@ -66,11 +66,11 @@ export function useDashboardData(activeTab: AnimalCategory, viewDate: string) {
   useEffect(() => {
     const pendingTasks = (tasks || [])
       .filter(t => !t.completed && t.type !== 'HEALTH')
-      .map(t => ({ id: t.id, title: t.title, due_date: t.dueDate }));
+      .map(t => ({ id: t.id, title: t.title, due_date: t.due_date }));
       
     const pendingHealth = (tasks || [])
       .filter(t => !t.completed && t.type === 'HEALTH')
-      .map(t => ({ id: t.id, title: t.title, due_date: t.dueDate }));
+      .map(t => ({ id: t.id, title: t.title, due_date: t.due_date }));
 
     const timer = setTimeout(() => setTaskStats({ pendingTasks, pendingHealth }), 0);
     return () => clearTimeout(timer);
