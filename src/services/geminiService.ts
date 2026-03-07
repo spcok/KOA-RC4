@@ -1,16 +1,29 @@
-import { supabase } from '../lib/supabase';
+import { GoogleGenAI, Type } from "@google/genai";
+
+// Lazy initialization of the Gemini client
+let aiClient: GoogleGenAI | null = null;
+
+function getAiClient(): GoogleGenAI {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is missing.");
+    }
+    aiClient = new GoogleGenAI({ apiKey });
+  }
+  return aiClient;
+}
+
+const MODEL_NAME = "gemini-2.5-flash";
 
 export const analyzeFlightWeather = async (hourlyData: unknown[]): Promise<string> => {
   try {
-    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
-      body: { 
-        prompt: `Analyze the following weather data for flight safety: ${JSON.stringify(hourlyData)}` 
-      },
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `Analyze the following weather data for flight safety: ${JSON.stringify(hourlyData)}`,
     });
-
-    if (error) throw error;
-    
-    return data.text || 'No analysis available.';
+    return response.text || 'No analysis available.';
   } catch (error) {
     console.error('Error analyzing flight weather:', error);
     throw new Error('Failed to analyze flight weather. Please try again later.', { cause: error });
@@ -19,12 +32,12 @@ export const analyzeFlightWeather = async (hourlyData: unknown[]): Promise<strin
 
 export const getLatinName = async (species: string): Promise<string> => {
   try {
-    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
-      body: { prompt: `What is the scientific (latin) name for ${species}? Return only the name.` },
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `What is the scientific (latin) name for ${species}? Return only the name.`,
     });
-
-    if (error) throw error;
-    return data.text?.trim() || '';
+    return response.text?.trim() || '';
   } catch (error) {
     console.error('Error fetching latin name:', error);
     return '';
@@ -33,12 +46,12 @@ export const getLatinName = async (species: string): Promise<string> => {
 
 export const getConservationStatus = async (species: string): Promise<string> => {
   try {
-    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
-      body: { prompt: `What is the IUCN conservation status code for ${species}? Return only the code.` },
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `What is the IUCN conservation status code for ${species}? Return only the code.`,
     });
-
-    if (error) throw error;
-    return data.text?.trim() || 'NE';
+    return response.text?.trim() || 'NE';
   } catch (error) {
     console.error('Error fetching conservation status:', error);
     return 'NE';
@@ -47,14 +60,32 @@ export const getConservationStatus = async (species: string): Promise<string> =>
 
 export const batchGetSpeciesData = async (speciesList: string[]): Promise<Record<string, { latin_name: string, conservation_status: string, fun_fact: string }>> => {
   try {
-    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
-      body: { 
-        prompt: `Provide latin name, IUCN conservation status code, and a fun fact for the following species: ${speciesList.join(', ')}. Return as JSON.` 
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `Provide latin name, IUCN conservation status code, and a fun fact for the following species: ${speciesList.join(', ')}. Return ONLY valid JSON without markdown formatting.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          description: "Map of species name to their details",
+          additionalProperties: {
+            type: Type.OBJECT,
+            properties: {
+              latin_name: { type: Type.STRING },
+              conservation_status: { type: Type.STRING },
+              fun_fact: { type: Type.STRING },
+            },
+            required: ["latin_name", "conservation_status", "fun_fact"],
+          },
+        },
       },
     });
 
-    if (error) throw error;
-    return data.json || {};
+    if (!response.text) return {};
+    
+    // The response is already forced to JSON via schema, so we can parse it directly
+    return JSON.parse(response.text);
   } catch (error) {
     console.error('Error fetching batch species data:', error);
     throw new Error('Failed to fetch species data.', { cause: error });

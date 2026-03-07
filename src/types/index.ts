@@ -273,11 +273,13 @@ export interface ZLADocument {
 export interface OrgProfileSettings {
   id: string;
   org_name: string;
-  logo_url: string;
+  logo_url?: string;
   contact_email: string;
   contact_phone: string;
   address: string;
   zla_license_number: string;
+  official_website?: string;
+  adoption_portal?: string;
 }
 
 export interface OrgProfile {

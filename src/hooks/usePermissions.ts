@@ -10,7 +10,9 @@ export function usePermissions() {
 
   const rolePermissions = useHybridQuery<RolePermissionConfig | null>(
     'role_permissions',
-    supabase.from('role_permissions').select('*').eq('role', currentUser?.role).single(),
+    currentUser?.role 
+      ? supabase.from('role_permissions').select('*').eq('role', currentUser.role).single()
+      : Promise.resolve({ data: null, error: null }),
     async () => {
       if (!currentUser?.role) return null;
       return (await db.role_permissions.get(currentUser.role)) || null;

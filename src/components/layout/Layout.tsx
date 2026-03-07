@@ -11,6 +11,7 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAppData } from '../../context/Context';
+import BetaFeedbackWidget from '../ui/BetaFeedbackWidget';
 
 interface LayoutProps {
   fontScale?: number;
@@ -289,9 +290,12 @@ const Layout: React.FC<LayoutProps> = () => {
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto bg-slate-200 print:bg-white print:overflow-visible pb-24 md:pb-0">
-          <Outlet />
+          <Outlet context={{ isSidebarCollapsed }} />
         </div>
       </main>
+
+      {/* Global Beta Feedback Widget */}
+      <BetaFeedbackWidget />
     </div>
   );
 };

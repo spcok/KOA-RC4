@@ -1,23 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useOrgSettings } from '../useOrgSettings';
 import { OrgProfileSettings } from '../../../types';
+import { uploadFile } from '../../../lib/storageEngine';
 
 const schema = z.object({
   id: z.string(),
   org_name: z.string().min(1, 'Organisation Name is required'),
-  logo_url: z.string().min(1, 'Logo URL is required'),
+  logo_url: z.string().optional(),
   contact_email: z.string().email('Invalid email'),
   contact_phone: z.string().min(1, 'Contact Phone is required'),
   address: z.string().min(1, 'Address is required'),
   zla_license_number: z.string().min(1, 'ZLA License Number is required'),
+  official_website: z.string().optional(),
+  adoption_portal: z.string().optional(),
 });
 
 const OrgProfile: React.FC = () => {
   const { settings, isLoading, saveSettings } = useOrgSettings();
-  const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<OrgProfileSettings>({
+  const [isUploading, setIsUploading] = useState(false);
+  const { register, handleSubmit, control, setValue } = useForm<OrgProfileSettings>({
     resolver: zodResolver(schema),
     defaultValues: settings
   });
@@ -32,56 +36,82 @@ const OrgProfile: React.FC = () => {
 
   const logoUrl = useWatch({ control, name: 'logo_url' });
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setIsUploading(true);
+      try {
+        const url = await uploadFile(e.target.files[0], 'logos');
+        setValue('logo_url', url);
+      } catch (error) {
+        console.error('Upload failed', error);
+        alert('Upload failed');
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
   const onSubmit = async (data: OrgProfileSettings) => {
     await saveSettings(data);
-    // alert('Settings saved successfully!');
+    alert('Settings saved successfully!');
   };
 
   if (isLoading) return <div>Loading...</div>;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Brand & Identity</h3>
-        <div>
-          <label className="block text-sm font-medium text-slate-700">Organisation Name</label>
-          <input {...register('org_name')} className="mt-1 block w-full border border-slate-300 rounded-md p-2" />
-          {errors.org_name && <p className="text-red-500 text-xs">{errors.org_name.message}</p>}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex gap-6">
+          <div className="w-48 h-48 border-2 border-dashed border-slate-300 rounded-xl flex items-center justify-center overflow-hidden bg-slate-50">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+            ) : (
+              <span className="text-slate-400 text-sm">Logo</span>
+            )}
+          </div>
+          <div className="flex-1 space-y-4">
+            <input type="file" onChange={handleLogoUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+            {isUploading && <p className="text-sm text-blue-500">Uploading...</p>}
+            
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Academy Name</label>
+                <input {...register('org_name')} className="mt-1 block w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Zoo Licence Number</label>
+                <input {...register('zla_license_number')} className="mt-1 block w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50" />
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700">Logo URL</label>
-          <input {...register('logo_url')} className="mt-1 block w-full border border-slate-300 rounded-md p-2" />
-          {errors.logo_url && <p className="text-red-500 text-xs">{errors.logo_url.message}</p>}
-          {logoUrl && <img src={logoUrl} alt="Logo Preview" className="mt-2 h-20 w-auto" referrerPolicy="no-referrer" />}
+
+        <div className="mt-6">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Headquarters Address</label>
+          <textarea {...register('address')} className="mt-1 block w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Professional Email</label>
+            <input {...register('contact_email')} className="mt-1 block w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Academy Phone</label>
+            <input {...register('contact_phone')} className="mt-1 block w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Official Website</label>
+            <input {...register('official_website')} className="mt-1 block w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Adoption Portal</label>
+            <input {...register('adoption_portal')} className="mt-1 block w-full border border-slate-200 rounded-lg p-2.5 bg-slate-50" />
+          </div>
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Contact & Location</h3>
-        <div>
-          <label className="block text-sm font-medium text-slate-700">Email</label>
-          <input {...register('contact_email')} className="mt-1 block w-full border border-slate-300 rounded-md p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700">Phone</label>
-          <input {...register('contact_phone')} className="mt-1 block w-full border border-slate-300 rounded-md p-2" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700">Address</label>
-          <textarea {...register('address')} className="mt-1 block w-full border border-slate-300 rounded-md p-2" />
-        </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Regulatory</h3>
-        <div>
-          <label className="block text-sm font-medium text-slate-700">ZLA License Number</label>
-          <input {...register('zla_license_number')} className="mt-1 block w-full border border-slate-300 rounded-md p-2" />
-          {errors.zla_license_number && <p className="text-red-500 text-xs">{errors.zla_license_number.message}</p>}
-        </div>
-      </div>
-
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Save Changes</button>
+      <button type="submit" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 shadow-sm">Save Changes</button>
     </form>
   );
 };

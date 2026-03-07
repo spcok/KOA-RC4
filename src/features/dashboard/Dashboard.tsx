@@ -182,24 +182,10 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex bg-slate-100 p-1 rounded-xl">
-        {[AnimalCategory.OWLS, AnimalCategory.RAPTORS, AnimalCategory.MAMMALS, AnimalCategory.EXOTICS].map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveTab(cat)}
-            className={`flex-1 py-2 text-xs lg:text-sm font-medium rounded-lg transition-colors ${
-              activeTab === cat ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            {cat.charAt(0) + cat.slice(1).toLowerCase()}
-          </button>
-        ))}
-      </div>
-
-      {/* Date Control */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-4">
-        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+      {/* Viewing Options Control Bar */}
+      <div className="flex flex-col gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        {/* Row 1: Date Controls */}
+        <div className="flex flex-wrap items-center justify-center gap-4 w-full">
           <div className="flex items-center gap-2 text-slate-700 font-medium whitespace-nowrap text-xs lg:text-sm">
             <Calendar size={20} className="text-blue-600" />
             Viewing Date:
@@ -214,23 +200,40 @@ const Dashboard: React.FC<DashboardProps> = ({
             <button onClick={() => setViewDate(new Date().toISOString().split('T')[0])} className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs lg:text-sm hover:bg-slate-50 whitespace-nowrap flex-1 sm:flex-none text-center">Today</button>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <button onClick={cycleSort} className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-xs lg:text-sm font-medium hover:bg-slate-50 text-slate-700 bg-white min-w-[100px]">
-            <ArrowUpDown size={16} /> {sortOption === 'alpha-asc' ? 'A-Z' : sortOption === 'alpha-desc' ? 'Z-A' : 'Custom'}
-          </button>
-          <button onClick={() => toggleOrderLock(!isOrderLocked)} className={`p-2.5 border border-slate-200 rounded-lg ${isOrderLocked ? 'bg-slate-800 text-white' : 'bg-white text-slate-600'}`}>
-            {isOrderLocked ? <Lock size={16} /> : <Unlock size={16} />}
-          </button>
+        
+        {/* Row 2: Sort, Lock, Add */}
+        <div className="flex flex-wrap items-center justify-center gap-2 w-full">
+            <button onClick={cycleSort} className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-xs lg:text-sm font-medium hover:bg-slate-50 text-slate-700 bg-white min-w-[100px]">
+              <ArrowUpDown size={16} /> {sortOption === 'alpha-asc' ? 'A-Z' : sortOption === 'alpha-desc' ? 'Z-A' : 'Custom'}
+            </button>
+            <button onClick={() => toggleOrderLock(!isOrderLocked)} className={`shrink-0 p-2.5 border border-slate-200 rounded-lg ${isOrderLocked ? 'bg-slate-800 text-white' : 'bg-white text-slate-600'}`}>
+              {isOrderLocked ? <Lock size={16} /> : <Unlock size={16} />}
+            </button>
+          {edit_animals && (
+            <button onClick={() => setIsCreateAnimalModalOpen(true)} className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs lg:text-sm font-medium hover:bg-blue-700 shadow-sm whitespace-nowrap w-full sm:w-auto">
+              <Plus size={16} /> Add {activeTab.charAt(0) + activeTab.slice(1).toLowerCase()}
+            </button>
+          )}
         </div>
-        {edit_animals && (
-          <button onClick={() => setIsCreateAnimalModalOpen(true)} className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs lg:text-sm font-medium hover:bg-blue-700 shadow-sm whitespace-nowrap w-full md:w-auto">
-            <Plus size={16} /> Add {activeTab.charAt(0) + activeTab.slice(1).toLowerCase()}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex overflow-x-auto scrollbar-hide bg-slate-100 p-1 rounded-xl gap-1">
+        {[AnimalCategory.OWLS, AnimalCategory.RAPTORS, AnimalCategory.MAMMALS, AnimalCategory.EXOTICS].map(cat => (
+          <button
+            key={cat}
+            onClick={() => setActiveTab(cat)}
+            className={`flex-1 min-w-[100px] py-2 px-4 text-xs lg:text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+              activeTab === cat ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {cat.charAt(0) + cat.slice(1).toLowerCase()}
           </button>
-        )}
+        ))}
       </div>
 
       {/* List Header */}
-      <div className="flex items-center justify-between pt-4">
+      <div className="flex items-center justify-between">
         <h2 className="text-lg lg:text-2xl font-semibold text-slate-800">Your {activeTab.charAt(0) + activeTab.slice(1).toLowerCase()}</h2>
       </div>
 

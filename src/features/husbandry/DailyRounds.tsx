@@ -86,7 +86,7 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
         );
     }
 
-    const tabs = Object.values(AnimalCategory);
+    const tabs = (Object.values(AnimalCategory) as string[]).filter(cat => !['ALL', 'REPTILES', 'INVERTEBRATES', 'AMPHIBIANS'].includes(cat)) as AnimalCategory[];
 
     return (
         <div className="flex flex-col min-h-full bg-slate-50 animate-in fade-in duration-300">

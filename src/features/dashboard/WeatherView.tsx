@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useTransition } from 'react';
 import { getFullWeather, FullWeatherData, WeatherDaily, WeatherHourly } from '../../services/weatherService';
 import { analyzeFlightWeather } from '../../services/geminiService';
+import { useOrgSettings } from '../settings/useOrgSettings';
 import { 
     CloudSun, Wind, CloudRain, Sun, 
     Cloud, CloudLightning, Snowflake, Navigation, 
@@ -9,6 +10,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 
 const WeatherView: React.FC = () => {
+  const { settings } = useOrgSettings();
   const [data, setData] = useState<FullWeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -26,7 +28,7 @@ const WeatherView: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const weather = await getFullWeather();
+        const weather = await getFullWeather(settings?.address || 'Kent, UK');
         
         if (isMounted) {
           if (weather) {
@@ -56,7 +58,7 @@ const WeatherView: React.FC = () => {
     loadData();
 
     return () => { isMounted = false; };
-  }, []);
+  }, [settings?.address]);
 
   const handleGenerateAiAnalysis = () => {
       if (!data) return;

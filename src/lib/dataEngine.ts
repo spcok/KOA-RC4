@@ -45,8 +45,36 @@ export function useHybridQuery<T>(
         if (error) throw error;
 
         if (remoteData) {
-          const table = db[tableName] as import('dexie').Table<unknown, unknown>;
-          await table.bulkPut(remoteData as unknown[]);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const table = db[tableName] as import('dexie').Table<any, any>;
+          const pk = table.schema.primKey.keyPath;
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const isValid = (item: any) => {
+            if (typeof pk === 'string') {
+              return item && item[pk] !== undefined && item[pk] !== null;
+            }
+            if (Array.isArray(pk)) {
+              return item && pk.every(k => item[k] !== undefined && item[k] !== null);
+            }
+            return false;
+          };
+
+          if (Array.isArray(remoteData)) {
+            const validItems = remoteData.filter(isValid);
+            if (validItems.length > 0) {
+              await table.bulkPut(validItems);
+            }
+            if (validItems.length === 0 && remoteData.length > 0) {
+              console.warn(`[useHybridQuery] Primary key missing for table ${tableName}. Data not cached.`);
+            }
+          } else {
+            if (isValid(remoteData)) {
+              await table.put(remoteData);
+            } else {
+              console.warn(`[useHybridQuery] Primary key missing for table ${tableName}. Data not cached.`);
+            }
+          }
         }
       } catch (err) {
         console.error(`HybridQuery Error [${tableName}]:`, err);

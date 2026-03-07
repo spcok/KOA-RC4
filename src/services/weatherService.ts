@@ -30,49 +30,59 @@ export interface FullWeatherData {
   hourly: WeatherHourly[];
 }
 
-export const getFullWeather = async (): Promise<FullWeatherData> => {
-  const today = new Date();
-  const daily = [];
-  const hourly = [];
+const getWmoDescription = (code: number): string => {
+  if (code === 0) return 'Clear sky';
+  if (code >= 1 && code <= 3) return 'Cloudy';
+  if (code >= 45 && code <= 48) return 'Fog';
+  if (code >= 51 && code <= 67) return 'Rain';
+  if (code >= 71 && code <= 77) return 'Snow';
+  if (code >= 95 && code <= 99) return 'Thunderstorm';
+  return 'Unknown';
+};
 
-  // Generate 7 days of mock data
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    
-    daily.push({
-      date: d.toISOString().split('T')[0],
-      weatherCode: [0, 2, 3, 61, 80][Math.floor(Math.random() * 5)], // Random weather icons
-      maxTemp: 12 + Math.floor(Math.random() * 8)
-    });
+export const getFullWeather = async (address: string = 'Kent, UK'): Promise<FullWeatherData> => {
+  let lat = 51.27;
+  let lon = 0.52;
 
-    // Generate 24 hours of data for each of those 7 days
-    for (let h = 0; h < 24; h++) {
-      const hd = new Date(d);
-      hd.setHours(h, 0, 0, 0);
-      hourly.push({
-        time: hd.toISOString(),
-        weatherCode: 3,
-        description: 'Simulated Atmos',
-        temp: 8 + Math.floor(Math.random() * 10),
-        windSpeed: 5 + Math.floor(Math.random() * 15),
-        windDirection: 180,
-        windGust: 15 + Math.floor(Math.random() * 20),
-        precipProb: Math.floor(Math.random() * 40),
-      });
+  try {
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(address)}&count=1`);
+    const geoData = await geoRes.json();
+    if (geoData.results && geoData.results.length > 0) {
+      lat = geoData.results[0].latitude;
+      lon = geoData.results[0].longitude;
     }
+  } catch (e) {
+    console.error('Geocoding failed, using fallback', e);
   }
 
-  return {
-    current: {
-      temperature: 14,
-      weatherCode: 2,
-      description: 'Partly Cloudy (Mock)',
-      windSpeed: 12,
-      windDirection: 210,
-      windGust: 18,
-    },
-    daily,
-    hourly
+  const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max&timezone=auto`);
+  const data = await weatherRes.json();
+
+  const current: WeatherCurrent = {
+    temperature: data.current.temperature_2m,
+    weatherCode: data.current.weather_code,
+    description: getWmoDescription(data.current.weather_code),
+    windSpeed: data.current.wind_speed_10m,
+    windDirection: data.current.wind_direction_10m,
+    windGust: data.current.wind_gusts_10m,
   };
+
+  const daily: WeatherDaily[] = data.daily.time.map((time: string, i: number) => ({
+    date: time,
+    weatherCode: data.daily.weather_code[i],
+    maxTemp: data.daily.temperature_2m_max[i],
+  }));
+
+  const hourly: WeatherHourly[] = data.hourly.time.map((time: string, i: number) => ({
+    time,
+    weatherCode: data.hourly.weather_code[i],
+    description: getWmoDescription(data.hourly.weather_code[i]),
+    temp: data.hourly.temperature_2m[i],
+    windSpeed: data.hourly.wind_speed_10m[i],
+    windDirection: data.hourly.wind_direction_10m[i],
+    windGust: data.hourly.wind_gusts_10m[i],
+    precipProb: data.hourly.precipitation_probability[i],
+  }));
+
+  return { current, daily, hourly };
 };

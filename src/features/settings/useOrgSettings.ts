@@ -10,10 +10,16 @@ const DEFAULT_SETTINGS: OrgProfileSettings = {
   contact_phone: '',
   address: '',
   zla_license_number: '',
+  official_website: '',
+  adoption_portal: '',
 };
 
 export function useOrgSettings() {
-  const settingsData = useHybridQuery<OrgProfileSettings>('settings', () => db.settings.get('profile'), []);
+  const settingsData = useHybridQuery<OrgProfileSettings>('settings', async () => {
+    const settings = await db.settings.get('profile');
+    return settings || DEFAULT_SETTINGS;
+  }, []);
+  
   const isLoading = settingsData === undefined;
   const settings = settingsData || DEFAULT_SETTINGS;
 
