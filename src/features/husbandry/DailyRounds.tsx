@@ -89,7 +89,7 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
     const tabs = (Object.values(AnimalCategory) as string[]).filter(cat => !['ALL', 'REPTILES', 'INVERTEBRATES', 'AMPHIBIANS'].includes(cat)) as AnimalCategory[];
 
     return (
-        <div className="flex flex-col min-h-full bg-slate-50 animate-in fade-in duration-300">
+        <div className="flex flex-col min-h-full bg-slate-50">
             <div className="bg-white border-b border-slate-200 px-4 py-4 sticky top-0 z-20 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
@@ -236,8 +236,8 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
             </div>
 
             {reportModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 border-2 border-slate-200">
+                <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border-2 border-slate-200">
                         <div className={`p-6 border-b flex items-center gap-4 ${reportType === 'HEALTH' ? 'bg-rose-50 border-rose-100' : 'bg-orange-50 border-orange-100'}`}>
                             {reportType === 'HEALTH' ? <AlertTriangle className="text-rose-600" size={28} /> : <Lock className="text-orange-600" size={28}/>}
                             <div>

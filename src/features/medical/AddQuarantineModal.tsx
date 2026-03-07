@@ -45,8 +45,8 @@ export const AddQuarantineModal: React.FC<Props> = ({ isOpen, onClose, onSave, a
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-slate-900">Add Quarantine Record</h2>
+        <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+          <h2 className="text-lg font-bold text-slate-900">Add Quarantine Record</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -80,7 +80,7 @@ export const AddQuarantineModal: React.FC<Props> = ({ isOpen, onClose, onSave, a
             <textarea {...register('isolation_notes')} className="w-full mt-1 border border-slate-300 rounded-lg p-2" rows={3} />
             {errors.isolation_notes && <p className="text-red-500 text-xs">{errors.isolation_notes.message}</p>}
           </div>
-          <button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 text-white rounded-lg p-2 font-medium hover:bg-emerald-700 disabled:bg-slate-400">
+          <button type="submit" disabled={isSubmitting} className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:bg-slate-400">
             {isSubmitting ? 'Saving...' : 'Save Record'}
           </button>
         </form>

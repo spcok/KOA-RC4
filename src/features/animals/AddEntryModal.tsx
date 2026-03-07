@@ -18,7 +18,7 @@ const AddEntryModal: React.FC<AddEntryModalProps> = ({ isOpen, onClose, animal, 
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl w-full max-w-2xl overflow-hidden shadow-lg animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-xl w-full max-w-2xl overflow-hidden shadow-lg">
         <div className="p-6 space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-bold text-slate-900">Log Activity: {animal.name}</h3>

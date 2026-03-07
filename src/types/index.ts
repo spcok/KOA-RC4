@@ -285,6 +285,7 @@ export interface OrgProfileSettings {
 export interface OrgProfile {
   name: string;
   logo_url: string;
+  adoption_portal?: string;
 }
 
 export interface ClinicalNote {
@@ -446,4 +447,18 @@ export interface SyncQueueItem {
   operation: 'upsert' | 'delete';
   payload: Record<string, unknown>;
   created_at: string;
+}
+
+export interface SignContent {
+    diet: string[];
+    habitat: string[];
+    didYouKnow: string[];
+    speciesBrief?: string;
+    wildOrigin?: string;
+    speciesStats: {
+        lifespanWild: string;
+        lifespanCaptivity: string;
+        wingspan: string;
+        weight: string;
+    };
 }

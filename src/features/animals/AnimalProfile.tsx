@@ -99,7 +99,7 @@ const AnimalProfile: React.FC<AnimalProfileProps> = ({ animalId, onBack }) => {
   const isHighHazard = animal.hazard_rating === HazardRating.HIGH || animal.is_venomous;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-24 font-sans animate-in fade-in duration-500">
+    <div className="min-h-screen bg-slate-50/50 pb-24 font-sans">
         {/* STICKY FROSTED HEADER */}
         <div className="sticky top-0 z-30 bg-white/70 backdrop-blur-xl border-b border-slate-200/60 px-6 py-4">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -269,7 +269,7 @@ const AnimalProfile: React.FC<AnimalProfileProps> = ({ animalId, onBack }) => {
 
                     {/* TAB CONTENT: OVERVIEW */}
                     {activeTab === 'Overview' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-bottom-4 duration-500">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6">
                                 <div>
                                     <h4 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
@@ -353,7 +353,7 @@ const AnimalProfile: React.FC<AnimalProfileProps> = ({ animalId, onBack }) => {
 
                     {/* TAB CONTENT: HISTORY FEED */}
                     {activeTab === 'History' && (
-                        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                        <div className="space-y-6">
                             <div className="flex flex-wrap gap-2">
                                 <button onClick={() => setLogFilter('ALL')} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${logFilter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}>ALL</button>
                                 {[LogType.WEIGHT, LogType.FEED, LogType.FLIGHT, LogType.TRAINING, LogType.TEMPERATURE].map(type => (
@@ -408,7 +408,7 @@ const AnimalProfile: React.FC<AnimalProfileProps> = ({ animalId, onBack }) => {
 
                     {/* TAB CONTENT: MEDICAL */}
                     {activeTab === 'Medical' && (
-                        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                        <div className="space-y-6">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-sm font-semibold text-slate-900">Clinical Patient File</h3>
                                 {canEditMedical && (
@@ -460,7 +460,7 @@ const AnimalProfile: React.FC<AnimalProfileProps> = ({ animalId, onBack }) => {
 
                     {/* TAB CONTENT: TASKS */}
                     {activeTab === 'Tasks' && (
-                        <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                        <div className="space-y-6">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-sm font-semibold text-slate-900">Assigned Duties</h3>
                                 <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded border border-emerald-100">
@@ -533,7 +533,7 @@ const AnimalProfile: React.FC<AnimalProfileProps> = ({ animalId, onBack }) => {
         {/* ARCHIVE MODAL */}
         {isArchiveModalOpen && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-lg animate-in zoom-in-95 duration-200">
+                <div className="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-lg">
                     <div className="p-6 space-y-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">

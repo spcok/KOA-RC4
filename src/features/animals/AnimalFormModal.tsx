@@ -37,8 +37,8 @@ const AnimalFormModal: React.FC<AnimalFormModalProps> = ({ isOpen, onClose, init
   const labelClass = "block text-sm font-medium text-slate-700 mb-1";
   
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
-        <div className="bg-white rounded-xl shadow-lg w-full max-w-6xl max-h-[95vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+        <div className="bg-white rounded-xl shadow-lg w-full max-w-6xl max-h-[95vh] flex flex-col overflow-hidden">
             <div className="p-6 border-b border-slate-200 flex justify-between items-start shrink-0">
                 <div>
                     <h2 className="text-xl font-bold text-slate-900">{initialData ? 'Edit' : 'Add'} Animal Record</h2>

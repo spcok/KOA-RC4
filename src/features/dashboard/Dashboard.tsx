@@ -85,70 +85,84 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Tasks & Health Rota Bento */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col transition-all duration-300">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col transition-all duration-300">
               <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsBentoMinimized(!isBentoMinimized)}>
                   <div className="flex items-center gap-3">
-                      <div className="p-2 bg-slate-100 text-slate-700 rounded-lg"><ClipboardCheck size={18} /></div>
-                      <h2 className="text-xs lg:text-sm font-semibold text-slate-800">Pending Duties</h2>
+                      <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><ClipboardCheck size={20} /></div>
+                      <h2 className="text-lg font-semibold text-slate-800">Pending Duties</h2>
                   </div>
                   <div className="flex items-center gap-3">
-                      <span className="bg-slate-100 text-slate-600 text-[10px] lg:text-xs font-bold px-2.5 py-1 rounded-md">{taskStats?.pendingTasks?.length || 0}</span>
-                      <button className="text-slate-400 hover:text-slate-600">
+                      <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">{taskStats?.pendingTasks?.length || 0}</span>
+                      <button className="text-slate-400 hover:text-slate-600 transition-colors">
                           {isBentoMinimized ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
                       </button>
                   </div>
               </div>
               {!isBentoMinimized && (
-                  <div className="mt-4 flex-1 overflow-y-auto max-h-48 pr-2 space-y-2 scrollbar-hide">
+                  <div className="mt-4 flex-1 overflow-y-auto max-h-64 pr-2 space-y-3 scrollbar-hide">
                       {(taskStats?.pendingTasks?.length || 0) > 0 ? (
                           (taskStats?.pendingTasks || []).map(t => (
-                              <div key={t.id} className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors">
-                                  <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0"/>
-                                  <div>
-                                      <p className="text-xs lg:text-sm font-medium text-slate-800 leading-tight">{t.title}</p>
-                                      <p className="text-[10px] lg:text-xs text-slate-500 mt-1">Due: {getSafeDate(t.due_date)}</p>
+                              <div key={t.id} className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 hover:bg-white transition-all group">
+                                  <div className="mt-1 p-1 bg-amber-100 rounded-full">
+                                    <AlertCircle size={14} className="text-amber-600 shrink-0"/>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-slate-900 leading-tight truncate">{t.title}</p>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <Calendar size={12} className="text-slate-400" />
+                                        <p className="text-xs text-slate-500">Due: {getSafeDate(t.due_date)}</p>
+                                      </div>
                                   </div>
                               </div>
                           ))
                       ) : (
-                          <div className="h-full flex flex-col items-center justify-center text-slate-400 py-6">
-                              <CheckCircle size={28} className="mb-2 text-emerald-400 opacity-60"/>
-                              <p className="text-xs font-medium">All Duties Satisfied</p>
+                          <div className="h-full flex flex-col items-center justify-center text-slate-400 py-8">
+                              <div className="p-3 bg-emerald-50 rounded-full mb-3">
+                                <CheckCircle size={32} className="text-emerald-500 opacity-80"/>
+                              </div>
+                              <p className="text-sm font-medium text-slate-500">All Duties Satisfied</p>
                           </div>
                       )}
                   </div>
               )}
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col transition-all duration-300">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col transition-all duration-300">
               <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsBentoMinimized(!isBentoMinimized)}>
                   <div className="flex items-center gap-3">
-                      <div className="p-2 bg-rose-50 text-rose-600 rounded-lg"><Heart size={18} /></div>
-                      <h2 className="text-xs lg:text-sm font-semibold text-slate-800">Health Rota</h2>
+                      <div className="p-2 bg-rose-50 text-rose-600 rounded-lg"><Heart size={20} /></div>
+                      <h2 className="text-lg font-semibold text-slate-800">Health Rota</h2>
                   </div>
                   <div className="flex items-center gap-3">
-                      <span className="bg-rose-50 text-rose-600 text-[10px] lg:text-xs font-bold px-2.5 py-1 rounded-md">{taskStats?.pendingHealth?.length || 0}</span>
-                      <button className="text-slate-400 hover:text-slate-600">
+                      <span className="bg-rose-50 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-full">{taskStats?.pendingHealth?.length || 0}</span>
+                      <button className="text-slate-400 hover:text-slate-600 transition-colors">
                           {isBentoMinimized ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
                       </button>
                   </div>
               </div>
               {!isBentoMinimized && (
-                  <div className="mt-4 flex-1 overflow-y-auto max-h-48 pr-2 space-y-2 scrollbar-hide">
+                  <div className="mt-4 flex-1 overflow-y-auto max-h-64 pr-2 space-y-3 scrollbar-hide">
                       {(taskStats?.pendingHealth?.length || 0) > 0 ? (
                           (taskStats?.pendingHealth || []).map(t => (
-                              <div key={t.id} className="flex items-start gap-3 p-3 rounded-lg bg-rose-50/50 border border-rose-100 hover:border-rose-200 transition-colors">
-                                  <Heart size={16} className="text-rose-500 mt-0.5 shrink-0"/>
-                                  <div>
-                                      <p className="text-xs lg:text-sm font-medium text-slate-800 leading-tight">{t.title}</p>
-                                      <p className="text-[10px] lg:text-xs text-slate-500 mt-1">Mandatory: {getSafeDate(t.due_date)}</p>
+                              <div key={t.id} className="flex items-start gap-3 p-3 rounded-lg bg-rose-50/30 border border-rose-100 hover:border-rose-300 hover:bg-white transition-all group">
+                                  <div className="mt-1 p-1 bg-rose-100 rounded-full">
+                                    <Heart size={14} className="text-rose-600 shrink-0"/>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-slate-900 leading-tight truncate">{t.title}</p>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <Calendar size={12} className="text-slate-400" />
+                                        <p className="text-xs text-slate-500">Mandatory: {getSafeDate(t.due_date)}</p>
+                                      </div>
                                   </div>
                               </div>
                           ))
                       ) : (
-                          <div className="h-full flex flex-col items-center justify-center text-slate-400 py-6">
-                              <Heart size={28} className="mb-2 text-rose-300 opacity-50"/>
-                              <p className="text-xs font-medium">Collection Stable</p>
+                          <div className="h-full flex flex-col items-center justify-center text-slate-400 py-8">
+                              <div className="p-3 bg-rose-50 rounded-full mb-3">
+                                <Heart size={32} className="text-rose-300 opacity-60"/>
+                              </div>
+                              <p className="text-sm font-medium text-slate-500">Collection Stable</p>
                           </div>
                       )}
                   </div>

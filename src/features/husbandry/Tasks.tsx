@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Task, Animal, LogType, User } from '../../types';
 import { 
-    CheckCircle2, Circle, Plus, Calendar, User as UserIcon, 
+    Plus, Calendar, User as UserIcon, 
     AlertCircle, ListTodo, X, Check, UserCheck, Loader2, Search
 } from 'lucide-react';
 import AddEntryModal from './AddEntryModal';
@@ -35,10 +35,12 @@ const Tasks: React.FC = () => {
   if (!view_tasks) {
     return (
       <div className="p-8 flex flex-col items-center justify-center h-full min-h-[50vh] space-y-4">
-        <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 flex flex-col items-center gap-2 max-w-md text-center">
-          <Lock size={48} className="opacity-50" />
-          <h2 className="text-lg font-bold uppercase tracking-tight">Access Restricted</h2>
-          <p className="text-sm font-medium">You do not have permission to view the Duty Rota. Please contact your administrator.</p>
+        <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col items-center gap-4 max-w-md text-center">
+          <div className="p-3 bg-rose-50 rounded-full">
+            <Lock size={32} className="text-rose-500" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900">Access Restricted</h2>
+          <p className="text-slate-600">You do not have permission to view the Duty Rota. Please contact your administrator.</p>
         </div>
       </div>
     );
@@ -47,14 +49,13 @@ const Tasks: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
 
   const handleTaskClick = (task: Task) => {
       if (task.completed) {
-          // if (window.confirm("Re-open task?")) toggleTaskCompletion(task);
           toggleTaskCompletion(task);
           return;
       }
@@ -86,16 +87,16 @@ const Tasks: React.FC = () => {
       setNewAnimalId('');
   };
 
-  const inputClass = "w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all placeholder-slate-400";
+  const inputClass = "w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-slate-400";
 
   return (
-    <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 z-20 bg-slate-50/80 backdrop-blur-md py-4 -mt-4 border-b border-slate-200">
+    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
              <div>
-                <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3 uppercase tracking-tight">
-                    <ListTodo className="text-slate-600" size={28} /> Duty Rota
+                <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+                    <ListTodo className="text-blue-600" size={32} /> Duty Rota
                 </h1>
-                <p className="text-slate-500 text-sm font-medium">Section Care Tasks & Assignments</p>
+                <p className="text-slate-500 text-sm mt-1">Section Care Tasks & Assignments</p>
              </div>
              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                 <div className="relative flex-1 md:w-64">
@@ -105,19 +106,19 @@ const Tasks: React.FC = () => {
                         placeholder="Search duties..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-500 transition-all shadow-sm"
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
                     />
                 </div>
                 <button 
                     onClick={() => setShowAddModal(true)} 
-                    className="bg-slate-900 text-white px-6 py-3 rounded-xl shadow-lg active:scale-95 transition-all hover:bg-black font-black uppercase text-xs tracking-widest flex items-center gap-2"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
                 >
                     <Plus size={18} /> Add Duty
                 </button>
              </div>
         </div>
 
-        <div className="flex bg-white p-1 rounded-xl border-2 border-slate-200 shadow-sm overflow-hidden w-full md:w-auto self-start inline-flex">
+        <div className="flex bg-slate-100 p-1 rounded-lg w-full md:w-auto self-start inline-flex">
             {[
                 { id: 'assigned', label: 'My Tasks' },
                 { id: 'pending', label: 'All Tasks' },
@@ -126,60 +127,99 @@ const Tasks: React.FC = () => {
                 <button 
                     key={f.id} 
                     onClick={() => setFilter(f.id as 'assigned' | 'pending' | 'completed')} 
-                    className={`px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${filter === f.id ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${filter === f.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                     {f.label}
                 </button>
             ))}
         </div>
 
-        <div className="space-y-3 pb-24">
+        <div className="space-y-4 pb-24">
             {tasks && tasks.length > 0 ? tasks.map((task: Task) => {
                 const animal = animals.find(a => a.id === task.animal_id);
                 const isOverdue = !task.completed && task.due_date && task.due_date < new Date().toISOString().split('T')[0];
                 const assignedUser = users?.find((u: User) => u.id === task.assigned_to);
 
                 return (
-                    <div key={task.id} className={`bg-white rounded-2xl border-2 border-slate-200 border-l-4 overflow-hidden shadow-sm transition-all active:scale-[0.99] flex items-stretch hover:shadow-md ${isOverdue ? 'hover:border-l-rose-500 border-l-rose-500' : 'hover:border-l-emerald-500 border-l-transparent'} ${task.completed ? 'opacity-60 grayscale-[0.5]' : ''}`}>
-                        <div className="flex-1 p-5 cursor-pointer" onClick={() => handleTaskClick(task)}>
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded border bg-slate-50 text-slate-600 border-slate-200 tracking-widest">{String(task.type || 'GENERAL')}</span>
-                                {isOverdue && <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 tracking-widest flex items-center gap-1"><AlertCircle size={10}/> Overdue</span>}
-                                {assignedUser && <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-50 text-slate-500 tracking-widest border border-slate-200 flex items-center gap-1"><UserIcon size={8}/> {String(assignedUser.initials)}</span>}
+                    <div key={task.id} className={`bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm transition-all flex items-center gap-4 ${task.completed ? 'opacity-60' : ''}`}>
+                        <button 
+                          onClick={() => handleTaskClick(task)} 
+                          className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${task.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-blue-500'}`}
+                        >
+                            {task.completed && <Check size={14} strokeWidth={3} />}
+                        </button>
+
+                        <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${task.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                                  {task.completed ? 'Completed' : 'Pending'}
+                                </span>
+                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                                  {String(task.type || 'General')}
+                                </span>
+                                {isOverdue && (
+                                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 flex items-center gap-1">
+                                    <AlertCircle size={12}/> Overdue
+                                  </span>
+                                )}
                             </div>
-                            <h3 className="font-bold text-base text-slate-900 leading-tight mb-2 uppercase tracking-tight">{String(task.title)}</h3>
-                            <div className="flex items-center gap-4">
-                                {task.due_date && <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><Calendar size={12}/> {new Date(task.due_date).toLocaleDateString()}</span>}
-                                {animal && <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">{String(animal.name)}</span>}
+                            <h3 className={`font-semibold text-slate-900 truncate ${task.completed ? 'line-through text-slate-400' : ''}`}>
+                              {String(task.title)}
+                            </h3>
+                            <div className="flex flex-wrap items-center gap-4 mt-2">
+                                {task.due_date && (
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <Calendar size={14} className="text-slate-400"/> {new Date(task.due_date).toLocaleDateString()}
+                                  </span>
+                                )}
+                                {assignedUser && (
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <UserIcon size={14} className="text-slate-400"/> {String(assignedUser.name)}
+                                  </span>
+                                )}
+                                {animal && (
+                                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                                    {String(animal.name)}
+                                  </span>
+                                )}
                             </div>
                         </div>
-                        <button onClick={() => handleTaskClick(task)} className={`w-20 flex flex-col items-center justify-center transition-all border-l-2 border-slate-100 ${task.completed ? 'bg-emerald-50 text-emerald-600' : 'bg-white text-slate-300 hover:bg-slate-50'}`}>
-                            {task.completed ? <CheckCircle2 size={32} className="text-emerald-500" /> : <Circle size={32} className="text-slate-200 group-hover:text-slate-400" />}
-                        </button>
+                        
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleTaskClick(task)}
+                            className={`text-sm font-medium px-3 py-1 rounded-md transition-colors ${task.completed ? 'text-slate-400 hover:text-slate-600' : 'text-blue-600 hover:bg-blue-50'}`}
+                          >
+                            {task.completed ? 'Re-open' : 'Complete'}
+                          </button>
+                        </div>
                     </div>
                 );
             }) : (
-                <div className="text-center py-24 bg-white rounded-2xl border-2 border-dashed border-slate-200">
-                    <ListTodo size={48} className="mx-auto mb-4 text-slate-100"/>
-                    <p className="text-slate-300 text-[10px] font-black uppercase tracking-[0.3em]">Rota Cleared</p>
+                <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
+                    <ListTodo size={48} className="mx-auto mb-4 text-slate-200"/>
+                    <p className="text-slate-500 font-medium">No tasks found</p>
+                    <p className="text-slate-400 text-sm mt-1">Try adjusting your filters or search</p>
                 </div>
             )}
         </div>
 
         {showAddModal && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-0 animate-in zoom-in-95 border-2 border-slate-200 overflow-hidden">
-                    <div className="p-6 border-b-2 border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-0 animate-in zoom-in-95 border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-900 uppercase tracking-tight">Add Duty</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Rota Assignment Registry</p>
+                            <h2 className="text-xl font-bold text-slate-900">Add Duty</h2>
+                            <p className="text-sm text-slate-500 mt-1">Assign a new care task</p>
                         </div>
-                        <button onClick={() => setShowAddModal(false)} className="text-slate-300 hover:text-slate-900 p-1"><X size={24}/></button>
+                        <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 p-1 transition-colors">
+                          <X size={24}/>
+                        </button>
                     </div>
-                    <form onSubmit={handleCreateTask} className="p-6 space-y-6">
+                    <form onSubmit={handleCreateTask} className="p-6 space-y-4">
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Duty Description</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Duty Description</label>
                                 <input 
                                     type="text" required value={newTitle} 
                                     onChange={e => setNewTitle(e.target.value)} 
@@ -190,13 +230,13 @@ const Tasks: React.FC = () => {
                             
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Duty Type</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Duty Type</label>
                                     <select value={newType} onChange={e => setNewType(e.target.value as LogType)} className={inputClass}>
                                         {Object.values(LogType).map((t: LogType) => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Target Subject</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Target Subject</label>
                                     <select value={newAnimalId} onChange={e => setNewAnimalId(e.target.value)} className={inputClass}>
                                         <option value="">No specific animal</option>
                                         {animals.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -206,11 +246,11 @@ const Tasks: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Due Date</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
                                     <input type="date" required value={newDueDate} onChange={e => setNewDueDate(e.target.value)} className={inputClass} />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Assigned To</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Assigned To</label>
                                     <select value={newAssignedTo} onChange={e => setNewAssignedTo(e.target.value)} className={inputClass}>
                                         <option value="">Unassigned</option>
                                         {(users || []).map((u: User) => <option key={u.id} value={u.id}>{u.name} ({u.initials})</option>)}
@@ -219,16 +259,28 @@ const Tasks: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-emerald-50 border-2 border-emerald-100 rounded-xl p-4 flex gap-3">
-                            <UserCheck className="text-emerald-600 shrink-0" size={18} />
-                            <p className="text-[10px] font-bold text-emerald-800 leading-relaxed uppercase">
+                        <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3">
+                            <UserCheck className="text-blue-600 shrink-0" size={20} />
+                            <p className="text-xs text-blue-800 leading-relaxed">
                                 Once committed, this duty will appear in the staff member's personal dashboard and statutory rota.
                             </p>
                         </div>
 
-                        <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-2">
-                            <Check size={18}/> Commit to Rota
-                        </button>
+                        <div className="flex gap-3 mt-6">
+                          <button 
+                            type="button"
+                            onClick={() => setShowAddModal(false)}
+                            className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors text-sm font-medium"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="submit" 
+                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+                          >
+                            Commit to Rota
+                          </button>
+                        </div>
                     </form>
                 </div>
             </div>

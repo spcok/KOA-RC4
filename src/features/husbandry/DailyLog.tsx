@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AnimalCategory, LogType, LogEntry } from '../../types';
 import { ClipboardList, ChevronLeft, ChevronRight, Loader2, Lock } from 'lucide-react';
@@ -7,11 +7,15 @@ import AddEntryModal from './AddEntryModal';
 import { useDailyLogData } from './useDailyLogData';
 import { useAppData } from '../../context/Context';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useOrgSettings } from '../settings/useOrgSettings';
+import { getFullWeather } from '../../services/weatherService';
 
 const DailyLog: React.FC = () => {
   const { view_daily_logs } = usePermissions();
   const [activeCategory, setActiveCategory] = useState<AnimalCategory>(AnimalCategory.OWLS);
   const [viewDate, setViewDate] = useState(new Date().toISOString().split('T')[0]);
+  const { settings } = useOrgSettings();
+  const [currentOutdoorTemp, setCurrentOutdoorTemp] = useState<number | undefined>();
 
   const { 
     animals, 
@@ -21,6 +25,20 @@ const DailyLog: React.FC = () => {
     getTodayLog, 
     addLogEntry
   } = useDailyLogData(viewDate, activeCategory);
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const weather = await getFullWeather(settings?.address || 'Kent, UK');
+        if (weather && weather.current) {
+          setCurrentOutdoorTemp(Math.round(weather.current.temperature));
+        }
+      } catch (error) {
+        console.error('Failed to fetch weather for DailyLog', error);
+      }
+    };
+    fetchWeather();
+  }, [settings?.address]);
 
   const { isSidebarCollapsed } = useOutletContext<{ isSidebarCollapsed?: boolean }>() || { isSidebarCollapsed: false };
 
@@ -61,7 +79,7 @@ const DailyLog: React.FC = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-500">
+    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-4 -mt-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3 uppercase tracking-tight">
@@ -152,6 +170,7 @@ const DailyLog: React.FC = () => {
             eventTypes={eventTypes}
             initialDate={viewDate}
             allAnimals={animals}
+            defaultTemperature={currentOutdoorTemp}
           />
       )}
     </div>

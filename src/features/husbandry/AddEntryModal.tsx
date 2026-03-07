@@ -14,6 +14,7 @@ interface AddEntryModalProps {
   eventTypes: string[];
   initialDate: string;
   allAnimals: Animal[];
+  defaultTemperature?: number;
 }
 
 const AddEntryModal: React.FC<AddEntryModalProps> = ({ 
@@ -26,7 +27,8 @@ const AddEntryModal: React.FC<AddEntryModalProps> = ({
   foodOptions,
   feedMethods,
   eventTypes,
-  initialDate
+  initialDate,
+  defaultTemperature
 }) => {
   const [logType, setLogType] = useState<LogType>(initialType);
   const [date, setDate] = useState(initialDate);
@@ -35,7 +37,7 @@ const AddEntryModal: React.FC<AddEntryModalProps> = ({
   const [weightGrams, setWeightGrams] = useState<number | ''>(existingLog?.weight_grams || '');
   const [baskingTemp, setBaskingTemp] = useState<number | ''>(existingLog?.basking_temp_c || '');
   const [coolTemp, setCoolTemp] = useState<number | ''>(existingLog?.cool_temp_c || '');
-  const [temperature, setTemperature] = useState<number | ''>(existingLog?.temperature_c || '');
+  const [temperature, setTemperature] = useState<number | ''>(existingLog?.temperature_c ?? defaultTemperature ?? '');
   const [healthRecordType, setHealthRecordType] = useState(existingLog?.health_record_type || '');
 
   if (!isOpen) return null;
@@ -178,6 +180,9 @@ const AddEntryModal: React.FC<AddEntryModalProps> = ({
               className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-0 transition-all font-bold"
               required
             />
+            {defaultTemperature !== undefined && !existingLog && temperature === defaultTemperature && (
+              <p className="text-xs text-slate-500 mt-1">Auto-filled from local weather</p>
+            )}
           </div>
         );
       case LogType.EVENT:

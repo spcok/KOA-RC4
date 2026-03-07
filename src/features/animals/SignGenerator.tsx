@@ -1,27 +1,13 @@
 import React, { useRef, useState, useEffect, useMemo, useTransition } from 'react';
 import html2canvas from 'html2canvas';
-import { Animal, OrganisationProfile, AnimalCategory, HazardRating } from '@/types';
-import { X, Download, Info, Loader2, Globe, Edit2, Save, RefreshCw, Calendar, LayoutTemplate, Sun, Moon, Sparkles, Droplets, Camera, Upload } from 'lucide-react';
+import { Animal, OrgProfile, AnimalCategory, HazardRating, SignContent } from '@/src/types';
+import { X, Download, Info, Loader2, Globe, Edit2, Save, RefreshCw, Calendar, LayoutTemplate, Sun, Moon, Sparkles, Droplets } from 'lucide-react';
 import { generateSignageContent, generateExoticSummary } from '@/src/services/geminiService';
 import { IUCNBadge } from './IUCNBadge';
 
-interface SignContent {
-    diet: string[];
-    habitat: string[];
-    didYouKnow: string[];
-    speciesBrief?: string;
-    wildOrigin?: string;
-    speciesStats: {
-        lifespanWild: string;
-        lifespanCaptivity: string;
-        wingspan: string;
-        weight: string;
-    };
-}
-
 interface SignGeneratorProps {
   animal: Animal;
-  orgProfile: OrganisationProfile | null;
+  orgProfile: OrgProfile | null;
   onClose: () => void;
 }
 
@@ -80,6 +66,7 @@ const SignGenerator: React.FC<SignGeneratorProps> = ({ animal, orgProfile, onClo
 
   useEffect(() => {
       fetchContent();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDownload = async () => {
@@ -94,14 +81,14 @@ const SignGenerator: React.FC<SignGeneratorProps> = ({ animal, orgProfile, onClo
     }
   };
 
-  const getAge = (dob: Date) => {
+  const getAge = (dob?: string) => {
       if (!dob) return 'Unknown';
       const age = new Date().getFullYear() - new Date(dob).getFullYear();
       if (age < 1) return '< 1 year';
       return `${age} years`;
   };
 
-  const getArrivalYear = (date?: Date) => {
+  const getArrivalYear = (date?: string) => {
       if (!date) return 'Unknown';
       return new Date(date).getFullYear();
   };
@@ -124,7 +111,7 @@ const SignGenerator: React.FC<SignGeneratorProps> = ({ animal, orgProfile, onClo
       return { bg: 'bg-emerald-500', text: 'text-emerald-500', textDark: 'text-emerald-600', containerBg: 'bg-[#f0fdf4]', border: 'border-emerald-100' };
   }, [animal.hazard_rating, animal.is_venomous]);
 
-  const adoptionUrl = orgProfile?.adoption_url || 'https://kentowlacademy.com';
+  const adoptionUrl = orgProfile?.adoption_portal || 'https://kentowlacademy.com';
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(adoptionUrl)}&color=ffffff&bgcolor=10b981`;
 
   const handleListChange = (section: 'diet' | 'habitat' | 'didYouKnow', value: string) => {
@@ -154,7 +141,7 @@ const SignGenerator: React.FC<SignGeneratorProps> = ({ animal, orgProfile, onClo
   const isHighRisk = animal.hazard_rating === HazardRating.HIGH || animal.is_venomous;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/90 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 bg-slate-900/90 z-[100] flex items-center justify-center p-4">
         <div className="flex flex-col gap-4 max-h-screen w-full max-w-6xl">
             <div className="flex flex-wrap justify-between items-center bg-white p-4 rounded-xl shadow-lg gap-4 shrink-0">
                 <div className="flex items-center gap-4">

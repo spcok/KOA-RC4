@@ -11,6 +11,7 @@ import DailyLog from './features/husbandry/DailyLog';
 import DailyRounds from './features/husbandry/DailyRounds';
 import MedicalRecords from './features/medical/MedicalRecords';
 import Movements from './features/logistics/Movements';
+import FlightRecords from './features/logistics/FlightRecords';
 import Timesheets from './features/staff/Timesheets';
 import Holidays from './features/staff/Holidays';
 import MissingRecords from './features/compliance/MissingRecords';
@@ -22,16 +23,6 @@ import SafetyDrills from './features/safety/tabs/SafetyDrills';
 import SiteMaintenance from './features/safety/tabs/SiteMaintenance';
 import ReportsDashboard from './features/reports/ReportsDashboard';
 import { processSyncQueue, prune14DayCache, startRealtimeSubscription } from './lib/syncEngine';
-
-const Placeholder = ({ title, phase }: { title: string, phase: string }) => (
-  <div className="p-8">
-    <h2 className="text-2xl font-bold text-slate-800 mb-4">{title}</h2>
-    <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center text-slate-400">
-      <p className="text-lg font-black uppercase tracking-widest text-slate-500 mb-2">{phase}</p>
-      <p className="text-sm font-medium">Clean room transplant pending...</p>
-    </div>
-  </div>
-);
 
 export default function App() {
   const { initialize, isLoading, session } = useAuthStore();
@@ -101,7 +92,7 @@ export default function App() {
 
             {/* PHASE 5: LOGISTICS & SAFETY */}
             <Route path="movements" element={<Movements />} />
-            <Route path="flight-records" element={<Placeholder title="Flight Records" phase="Phase 5: Logistics" />} />
+            <Route path="flight-records" element={<FlightRecords />} />
             <Route path="maintenance" element={<SiteMaintenance />} />
             <Route path="incidents" element={<Incidents />} />
             <Route path="safety-drills" element={<SafetyDrills />} />

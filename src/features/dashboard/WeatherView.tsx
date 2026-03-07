@@ -119,15 +119,15 @@ const WeatherView: React.FC = () => {
   const isWindRisk = windGust > 18 || windSpeed > 15;
 
   return (
-    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-500 pb-32">
+    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 pb-32">
       
       {/* TOP HEADER */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
-           <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+           <h1 className="text-3xl font-semibold text-slate-900 tracking-tight flex items-center gap-3">
              <CloudSun className="text-emerald-600" size={32} /> Meteorological Station
            </h1>
-           <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mt-1">Kent Owl Academy • Flight Safety Briefing</p>
+           <p className="text-slate-600 text-sm font-medium mt-1">Kent Owl Academy • Flight Safety Briefing</p>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -155,17 +155,17 @@ const WeatherView: React.FC = () => {
           {/* SIDEBAR: LIVE & AI */}
           <div className="xl:col-span-4 space-y-6">
               {/* CURRENT WEATHER CARD */}
-              <div className="bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between">
+              <div className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm relative overflow-hidden flex flex-col justify-between">
                   <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[80px] -mr-10 -mt-10 rounded-full"></div>
                   <div className="relative z-10">
                       <div className="flex justify-between items-start mb-6">
                           <div>
                               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-1">Local Telemetry</p>
-                              <h1 className="text-7xl font-black tracking-tighter tabular-nums">{Math.round(temp)}<span className="text-3xl text-slate-500">°C</span></h1>
+                              <h1 className="text-4xl font-semibold tracking-tighter tabular-nums text-slate-900">{Math.round(temp)}<span className="text-2xl text-slate-500">°C</span></h1>
                           </div>
                           <WeatherIcon code={Number(current.weatherCode) || 0} size={64} className="filter drop-shadow-lg" />
                       </div>
-                      <p className="text-xl font-black uppercase tracking-tight mb-6">{String(current.description || 'Unknown')}</p>
+                      <p className="text-xl font-semibold text-slate-800 mb-6">{String(current.description || 'Unknown')}</p>
                       
                       <div className="grid grid-cols-2 gap-3">
                           <div className="bg-white/5 rounded-xl p-3 border border-white/10">
@@ -216,7 +216,7 @@ const WeatherView: React.FC = () => {
                               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Analyzing Atmos...</p>
                           </div>
                       ) : (
-                          <div className="prose prose-slate prose-sm max-w-none animate-in fade-in duration-300">
+                          <div className="prose prose-slate prose-sm max-w-none">
                                <ReactMarkdown 
                                 components={{
                                     h3: ({...props}) => <h3 className="text-[10px] font-black uppercase tracking-widest text-emerald-800 mb-2 border-b border-emerald-100 pb-1" {...props} />,
@@ -260,11 +260,11 @@ const WeatherView: React.FC = () => {
               <div className="bg-white rounded-[2rem] border-2 border-slate-300 shadow-xl overflow-hidden">
                     <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                         <div>
-                            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Hourly Operational Matrix</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">High-Resolution Micro-Telemetry Forecast</p>
+                            <h2 className="text-xl font-semibold text-slate-800">Hourly Operational Matrix</h2>
+                            <p className="text-sm font-medium text-slate-500 mt-1">High-Resolution Micro-Telemetry Forecast</p>
                         </div>
                         <div className="text-right">
-                             <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-emerald-600 uppercase tracking-widest shadow-sm">
+                             <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 shadow-sm">
                                 {selectedDate ? new Date(selectedDate).toLocaleDateString('en-GB', { dateStyle: 'long' }) : '---'}
                              </span>
                         </div>

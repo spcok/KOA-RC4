@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
+import { SignContent } from "@/src/types";
 
 // Lazy initialization of the Gemini client
 let aiClient: GoogleGenAI | null = null;
@@ -55,6 +56,59 @@ export const getConservationStatus = async (species: string): Promise<string> =>
   } catch (error) {
     console.error('Error fetching conservation status:', error);
     return 'NE';
+  }
+};
+
+export const generateSignageContent = async (species: string): Promise<SignContent> => {
+  try {
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `Provide diet, habitat, did you know facts, wild origin, and species stats (lifespan in wild, lifespan in captivity, wingspan/length, weight) for ${species}. Return ONLY valid JSON without markdown formatting.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            diet: { type: Type.ARRAY, items: { type: Type.STRING } },
+            habitat: { type: Type.ARRAY, items: { type: Type.STRING } },
+            didYouKnow: { type: Type.ARRAY, items: { type: Type.STRING } },
+            wildOrigin: { type: Type.STRING },
+            speciesStats: {
+              type: Type.OBJECT,
+              properties: {
+                lifespanWild: { type: Type.STRING },
+                lifespanCaptivity: { type: Type.STRING },
+                wingspan: { type: Type.STRING },
+                weight: { type: Type.STRING },
+              },
+              required: ["lifespanWild", "lifespanCaptivity", "wingspan", "weight"],
+            },
+          },
+          required: ["diet", "habitat", "didYouKnow", "wildOrigin", "speciesStats"],
+        },
+      },
+    });
+
+    if (!response.text) throw new Error("No content generated");
+    return JSON.parse(response.text);
+  } catch (error) {
+    console.error('Error generating signage content:', error);
+    throw new Error('Failed to generate signage content.', { cause: error });
+  }
+};
+
+export const generateExoticSummary = async (species: string): Promise<string> => {
+  try {
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `Provide a brief summary for ${species} suitable for a zoo sign.`,
+    });
+    return response.text || '';
+  } catch (error) {
+    console.error('Error generating exotic summary:', error);
+    return '';
   }
 };
 
