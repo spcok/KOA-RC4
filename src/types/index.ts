@@ -298,6 +298,10 @@ export interface ClinicalNote {
   recheck_date?: string;
   staff_initials: string;
   attachment_url?: string;
+  diagnosis?: string;
+  bcs?: number;
+  weight_grams?: number;
+  treatment_plan?: string;
 }
 
 export interface MARChart {
@@ -462,3 +466,25 @@ export interface SignContent {
         weight: string;
     };
 }
+
+export type OrganisationProfile = OrgProfile;
+
+export interface SiteLogEntry {
+  id: string;
+  log_date: Date;
+  title: string;
+  description: string;
+  user_initials: string;
+}
+
+export interface TimeLogEntry {
+  id: string;
+  staff_name: string;
+  date: string;
+  clock_in: string;
+  clock_out?: string;
+  total_hours?: number;
+  notes?: string;
+  status: TimesheetStatus;
+}
+

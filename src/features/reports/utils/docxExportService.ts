@@ -82,9 +82,9 @@ const createDataTable = (headers: string[], rows: string[][]): Table => {
 };
 
 /**
- * Generic function to compile and save the docx
+ * Generic function to generate the report Blob
  */
-const saveReportDocx = async (title: string, subtitle: string, headers: string[], rows: string[][], filename: string) => {
+export const generateReportBlob = async (title: string, subtitle: string, headers: string[], rows: string[][]): Promise<Blob> => {
   const table = createDataTable(headers, rows);
   const doc = new Document({
     sections: [{
@@ -96,7 +96,14 @@ const saveReportDocx = async (title: string, subtitle: string, headers: string[]
     }]
   });
 
-  const blob = await Packer.toBlob(doc);
+  return await Packer.toBlob(doc);
+};
+
+/**
+ * Generic function to compile and save the docx
+ */
+const saveReportDocx = async (title: string, subtitle: string, headers: string[], rows: string[][], filename: string) => {
+  const blob = await generateReportBlob(title, subtitle, headers, rows);
   saveAs(blob, `${filename}_${new Date().toISOString().split('T')[0]}.docx`);
   return true;
 };

@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { useMedicalData } from './useMedicalData';
 import { usePermissions } from '../../hooks/usePermissions';
-import { Pill, ClipboardList, AlertTriangle, Plus, Edit2, Download, CheckCircle, Lock } from 'lucide-react';
+import { Pill, ClipboardList, AlertTriangle, Plus, Edit2, Download, CheckCircle, Lock, FileText, Printer } from 'lucide-react';
 import { AddClinicalNoteModal } from './AddClinicalNoteModal';
 import { AddMarChartModal } from './AddMarChartModal';
 import { AddQuarantineModal } from './AddQuarantineModal';
 import { generateMarChartDocx } from './exportMarChart';
+import { ClinicalNote } from '../../types';
 
 const MedicalRecords: React.FC = () => {
   const { view_medical, add_clinical_notes } = usePermissions();
-  const { clinicalNotes, marCharts, quarantineRecords, animals, isLoading, addClinicalNote, addMarChart, addQuarantineRecord, updateQuarantineRecord } = useMedicalData();
+  const { clinicalNotes, marCharts, quarantineRecords, animals, isLoading, addClinicalNote, updateClinicalNote, addMarChart, addQuarantineRecord, updateQuarantineRecord } = useMedicalData();
   const [activeTab, setActiveTab] = useState<'notes' | 'mar' | 'quarantine'>('notes');
+  const [selectedPatient, setSelectedPatient] = useState<string>('All');
+  const [selectedNote, setSelectedNote] = useState<ClinicalNote | null>(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<ClinicalNote | null>(null);
   const [isMarModalOpen, setIsMarModalOpen] = useState(false);
   const [isQuarantineModalOpen, setIsQuarantineModalOpen] = useState(false);
 
@@ -30,10 +34,67 @@ const MedicalRecords: React.FC = () => {
   if (isLoading) return <div className="p-8 text-center text-slate-500">Loading Clinical Records...</div>;
 
   const handleAdd = () => {
-    if (activeTab === 'notes') setIsNoteModalOpen(true);
+    if (activeTab === 'notes') {
+      setEditingNote(null);
+      setIsNoteModalOpen(true);
+    }
     else if (activeTab === 'mar') setIsMarModalOpen(true);
     else setIsQuarantineModalOpen(true);
   };
+
+  const handleEditNote = (note: ClinicalNote) => {
+    setEditingNote(note);
+    setIsNoteModalOpen(true);
+  };
+
+  const handlePrintNote = (note: ClinicalNote) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Clinical Note - ${note.animal_name}</title>
+            <style>
+              body { font-family: sans-serif; padding: 20px; }
+              h1 { font-size: 24px; margin-bottom: 10px; }
+              p { margin-bottom: 8px; }
+              .label { font-weight: bold; }
+              .section { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; }
+            </style>
+          </head>
+          <body>
+            <h1>Clinical Note: ${note.animal_name}</h1>
+            <p><span class="label">Date:</span> ${note.date}</p>
+            <p><span class="label">Type:</span> ${note.note_type}</p>
+            <p><span class="label">Staff:</span> ${note.staff_initials}</p>
+            ${note.diagnosis ? `<p><span class="label">Diagnosis:</span> ${note.diagnosis}</p>` : ''}
+            ${note.bcs ? `<p><span class="label">BCS:</span> ${note.bcs}/5</p>` : ''}
+            ${note.weight_grams ? `<p><span class="label">Weight:</span> ${note.weight_grams}g</p>` : ''}
+            
+            <div class="section">
+              <h3>Clinical Observation</h3>
+              <p style="white-space: pre-wrap;">${note.note_text}</p>
+            </div>
+
+            ${note.treatment_plan ? `
+              <div class="section">
+                <h3>Treatment Plan</h3>
+                <p style="white-space: pre-wrap;">${note.treatment_plan}</p>
+              </div>
+            ` : ''}
+
+            ${note.recheck_date ? `<div class="section"><p><span class="label">Recheck Date:</span> ${note.recheck_date}</p></div>` : ''}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const filteredNotes = (clinicalNotes || []).filter(n => 
+    selectedPatient === 'All' || n.animal_id === selectedPatient
+  );
 
   return (
     <div className="p-8 space-y-6">
@@ -54,8 +115,9 @@ const MedicalRecords: React.FC = () => {
       <AddClinicalNoteModal 
         isOpen={isNoteModalOpen} 
         onClose={() => setIsNoteModalOpen(false)} 
-        onSave={addClinicalNote} 
-        animals={animals} 
+        onSave={editingNote ? updateClinicalNote : addClinicalNote} 
+        animals={animals}
+        initialData={editingNote}
       />
       
       <AddMarChartModal 
@@ -88,115 +150,228 @@ const MedicalRecords: React.FC = () => {
         ))}
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="w-full overflow-x-auto overflow-y-hidden">
-          {activeTab === 'notes' && (
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Date</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Animal</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Type</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Clinical Note</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Recheck Due</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Initials</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(clinicalNotes || []).map(n => (
-                  <tr key={n.id}>
-                    <td className="px-6 py-4 text-slate-600">{String(n.date)}</td>
-                    <td className="px-6 py-4 text-base font-semibold text-slate-900">{String(n.animal_name)}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(n.note_type)}</td>
-                    <td className="px-6 py-4 max-w-xs truncate text-slate-600">{String(n.note_text)}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(n.recheck_date || '-')}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(n.staff_initials)}</td>
-                    <td className="px-6 py-4">
-                      <button className="text-slate-400 hover:text-blue-600 transition-colors"><Edit2 size={16} /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {activeTab === 'mar' && (
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Medication</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Animal</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Dosage & Freq</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Start-End</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Status</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(marCharts || []).map(m => (
-                  <tr key={m.id}>
-                    <td className="px-6 py-4 text-base font-semibold text-slate-900">{String(m.medication)}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(m.animal_name)}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(m.dosage)} / {String(m.frequency)}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(m.start_date)} - {String(m.end_date || 'Ongoing')}</td>
-                    <td className="px-6 py-4">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                        {String(m.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 flex gap-2">
-                      <button className="text-slate-400 hover:text-blue-600 transition-colors"><Edit2 size={16} /></button>
-                      <button onClick={() => generateMarChartDocx(m)} className="text-slate-400 hover:text-blue-600 transition-colors"><Download size={16} /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {activeTab === 'quarantine' && (
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Animal</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Reason</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Start</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Target Release</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Status</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Notes</th>
-                  <th className="px-6 py-4 text-sm font-medium text-slate-500">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(quarantineRecords || []).map(q => (
-                  <tr key={q.id}>
-                    <td className="px-6 py-4 text-base font-semibold text-slate-900">{String(q.animal_name)}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(q.reason)}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(q.start_date)}</td>
-                    <td className="px-6 py-4 text-slate-600">{String(q.end_date)}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${q.status === 'Active' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                        {String(q.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 max-w-xs truncate text-slate-600">{String(q.isolation_notes)}</td>
-                    <td className="px-6 py-4 flex gap-2">
-                      <button className="text-slate-400 hover:text-blue-600 transition-colors"><Edit2 size={16} /></button>
-                      {q.status === 'Active' && (
-                        <button 
-                          onClick={() => updateQuarantineRecord({...q, status: 'Cleared'})}
-                          className="text-slate-400 hover:text-blue-600 transition-colors"
-                        >
-                          <CheckCircle size={16} />
-                        </button>
+      {activeTab === 'notes' && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <label className="text-sm font-semibold text-slate-700">Filter by Patient:</label>
+            <select 
+              value={selectedPatient}
+              onChange={(e) => setSelectedPatient(e.target.value)}
+              className="bg-white border border-slate-200 rounded-md px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+            >
+              <option value="All">All Patients</option>
+              {animals?.map(a => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            {/* Left Column: Master List */}
+            <div className="flex-1 w-full lg:w-2/3 flex flex-col gap-4">
+              {filteredNotes.map(n => (
+                <div 
+                  key={n.id} 
+                  onClick={() => setSelectedNote(n)}
+                  className={`bg-white border rounded-xl p-5 shadow-sm cursor-pointer transition-all hover:shadow-md ${selectedNote?.id === n.id ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 hover:border-blue-300'}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-bold text-slate-900">{n.animal_name}</h3>
+                        <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-md text-xs font-medium">
+                          {n.note_type}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 font-medium">
+                        <span>{String(n.date)}</span>
+                        <span className="hidden sm:inline text-slate-300">•</span>
+                        <span>By: {String(n.staff_initials)}</span>
+                      </div>
+                      {n.diagnosis && (
+                        <p className="text-sm text-slate-600 font-medium mt-1">
+                          Dx: <span className="text-slate-800">{n.diagnosis}</span>
+                        </p>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                      <p className="text-slate-500 text-sm mt-2 line-clamp-2">
+                        {String(n.note_text)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {filteredNotes.length === 0 && (
+                <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <p className="text-slate-500 font-medium">No clinical notes found for this selection.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Detail Pane */}
+            <div className="w-full lg:w-1/3 bg-white border border-slate-200 rounded-xl p-6 shadow-sm sticky top-6">
+              {selectedNote ? (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900">{selectedNote.animal_name}</h2>
+                      <p className="text-sm text-slate-500 font-medium">{selectedNote.date}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleEditNote(selectedNote)}
+                        className="text-slate-400 hover:text-blue-600 transition-colors p-1" 
+                        title="Edit"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handlePrintNote(selectedNote)}
+                        className="text-slate-400 hover:text-blue-600 transition-colors p-1" 
+                        title="Print"
+                      >
+                        <Printer size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-md text-xs font-medium">
+                      {selectedNote.note_type}
+                    </span>
+                    {selectedNote.bcs && (
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-medium">
+                        BCS: {selectedNote.bcs}/5
+                      </span>
+                    )}
+                    {selectedNote.weight_grams && (
+                      <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md text-xs font-medium">
+                        Weight: {selectedNote.weight_grams}g
+                      </span>
+                    )}
+                  </div>
+
+                  {selectedNote.diagnosis && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-1">Diagnosis</h3>
+                      <p className="text-slate-800 font-medium">{selectedNote.diagnosis}</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-2">Clinical Observation</h3>
+                    <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">
+                      {selectedNote.note_text}
+                    </p>
+                  </div>
+
+                  {selectedNote.treatment_plan && (
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                      <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-2">Treatment Plan</h3>
+                      <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">
+                        {selectedNote.treatment_plan}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="border-t border-slate-100 pt-4 flex justify-between items-center text-sm text-slate-500">
+                    <span>Recorded by: <span className="font-medium text-slate-700">{selectedNote.staff_initials}</span></span>
+                    {selectedNote.recheck_date && (
+                      <span className="text-amber-600 font-medium">Recheck: {selectedNote.recheck_date}</span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-64 text-center text-slate-400">
+                  <FileText size={48} className="mb-4 opacity-20" />
+                  <p className="text-sm font-medium">Select a clinical note to view full details</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {(activeTab === 'mar' || activeTab === 'quarantine') && (
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div className="w-full overflow-x-auto overflow-y-hidden">
+            {activeTab === 'mar' && (
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Medication</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Animal</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Dosage & Freq</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Start-End</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Status</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(marCharts || []).map(m => (
+                    <tr key={m.id}>
+                      <td className="px-6 py-4 text-base font-semibold text-slate-900">{String(m.medication)}</td>
+                      <td className="px-6 py-4 text-slate-600">{String(m.animal_name)}</td>
+                      <td className="px-6 py-4 text-slate-600">{String(m.dosage)} / {String(m.frequency)}</td>
+                      <td className="px-6 py-4 text-slate-600">{String(m.start_date)} - {String(m.end_date || 'Ongoing')}</td>
+                      <td className="px-6 py-4">
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                          {String(m.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 flex gap-2">
+                        <button className="text-slate-400 hover:text-blue-600 transition-colors"><Edit2 size={16} /></button>
+                        <button onClick={() => generateMarChartDocx(m)} className="text-slate-400 hover:text-blue-600 transition-colors"><Download size={16} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {activeTab === 'quarantine' && (
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Animal</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Reason</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Start</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Target Release</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Status</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Notes</th>
+                    <th className="px-6 py-4 text-sm font-medium text-slate-500">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(quarantineRecords || []).map(q => (
+                    <tr key={q.id}>
+                      <td className="px-6 py-4 text-base font-semibold text-slate-900">{String(q.animal_name)}</td>
+                      <td className="px-6 py-4 text-slate-600">{String(q.reason)}</td>
+                      <td className="px-6 py-4 text-slate-600">{String(q.start_date)}</td>
+                      <td className="px-6 py-4 text-slate-600">{String(q.end_date)}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${q.status === 'Active' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                          {String(q.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 max-w-xs truncate text-slate-600">{String(q.isolation_notes)}</td>
+                      <td className="px-6 py-4 flex gap-2">
+                        <button className="text-slate-400 hover:text-blue-600 transition-colors"><Edit2 size={16} /></button>
+                        {q.status === 'Active' && (
+                          <button 
+                            onClick={() => updateQuarantineRecord({...q, status: 'Cleared'})}
+                            className="text-slate-400 hover:text-blue-600 transition-colors"
+                          >
+                            <CheckCircle size={16} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

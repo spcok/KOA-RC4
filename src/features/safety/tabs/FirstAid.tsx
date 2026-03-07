@@ -28,9 +28,9 @@ const FirstAid: React.FC = () => {
   if (!view_first_aid) {
     return (
       <div className="p-8 flex flex-col items-center justify-center h-full min-h-[50vh] space-y-4">
-        <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 flex flex-col items-center gap-2 max-w-md text-center">
+        <div className="p-4 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 flex flex-col items-center gap-2 max-w-md text-center">
           <Lock size={48} className="opacity-50" />
-          <h2 className="text-lg font-bold uppercase tracking-tight">Access Restricted</h2>
+          <h2 className="text-lg font-bold">Access Restricted</h2>
           <p className="text-sm font-medium">You do not have permission to view First Aid Log. Please contact your administrator.</p>
         </div>
       </div>
@@ -54,24 +54,24 @@ const FirstAid: React.FC = () => {
     setLocation('');
   };
 
-  const inputClass = "w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all placeholder-slate-400";
+  const inputClass = "w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-slate-400";
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3 uppercase tracking-tight">
-            <Stethoscope className="text-rose-600" size={28} /> Personnel Health Log
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+            <Stethoscope className="text-rose-600" size={32} /> Personnel Health Log
           </h1>
-          <p className="text-slate-500 text-sm font-medium">Official first aid and safety event registry for personnel.</p>
+          <p className="text-slate-500 text-sm font-medium mt-1">Official first aid and safety event registry for personnel.</p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
@@ -81,61 +81,61 @@ const FirstAid: React.FC = () => {
               placeholder="Search records..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-emerald-500 transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
             />
           </div>
-          <button onClick={() => setIsModalOpen(true)} className="bg-slate-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 hover:bg-black transition-all active:scale-95 font-black uppercase text-xs tracking-widest shrink-0">
+          <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-sm shrink-0">
             <Plus size={18}/> Record Occurrence
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="w-full overflow-x-auto overflow-y-hidden">
           <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead className="bg-slate-100 border-b-2 border-slate-200">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Entry Date</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Subject Personnel</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Occurrence Narrative</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Status / Outcome</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-500 whitespace-nowrap">Entry Date</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-500 whitespace-nowrap">Subject Personnel</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-500 whitespace-nowrap">Occurrence Narrative</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-500 whitespace-nowrap">Status / Outcome</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-500 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredLogs.map(log => (
-                <tr key={log.id} className="bg-white hover:bg-slate-50 transition-all group border-l-4 border-l-transparent hover:border-l-rose-500 hover:shadow-md relative z-0 hover:z-10 cursor-default">
+                <tr key={log.id} className="bg-white hover:bg-slate-50 transition-all group">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-bold text-slate-800 text-sm">{new Date(log.date).toLocaleDateString('en-GB')}</div>
-                    <div className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest flex items-center gap-1"><Clock size={10}/> {log.time}</div>
+                    <div className="font-semibold text-slate-900 text-base">{new Date(log.date).toLocaleDateString('en-GB')}</div>
+                    <div className="text-sm font-medium text-slate-500 mt-1 flex items-center gap-1"><Clock size={14}/> {log.time}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-xs font-black text-slate-900 uppercase block mb-1">{log.personName}</span>
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin size={10}/> {log.location}</div>
+                    <span className="text-base font-semibold text-slate-900 block mb-1">{log.personName}</span>
+                    <div className="flex items-center gap-1 text-sm font-medium text-slate-500"><MapPin size={14}/> {log.location}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-md line-clamp-2 italic border-l-2 border-slate-100 pl-3">"{log.description}"</p>
-                    <div className="text-[9px] font-black text-emerald-600 uppercase mt-2 tracking-widest">ADMINISTERED: {log.treatment || 'Observation Only'}</div>
+                    <div className="text-sm font-medium text-emerald-600 mt-1">ADMINISTERED: {log.treatment || 'Observation Only'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${
                       log.type === 'Injury' ? 'bg-rose-50 text-rose-700 border-rose-200' : 
                       log.type === 'Near Miss' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                      'bg-slate-900 text-white border-slate-800'
+                      'bg-slate-100 text-slate-700 border-slate-200'
                     }`}>
                       {log.type}
                     </span>
-                    <div className="text-[9px] font-black text-slate-400 uppercase mt-2 tracking-widest">{log.outcome}</div>
+                    <div className="text-sm font-medium text-slate-500 mt-1">{log.outcome}</div>
                   </td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => { deleteFirstAid(log.id) }} className="p-2 text-slate-400 hover:text-rose-600 bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"><Trash2 size={14}/></button>
+                      <button onClick={() => { deleteFirstAid(log.id) }} className="p-2 text-slate-400 hover:text-rose-600 bg-white border border-slate-200 rounded-md shadow-sm transition-colors"><Trash2 size={16}/></button>
                     </div>
                   </td>
                 </tr>
               ))}
               {filteredLogs.length === 0 && (
-                <tr><td colSpan={5} className="px-6 py-24 text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Nil Staff Health Registry History</td></tr>
+                <tr><td colSpan={5} className="px-6 py-16 text-center text-sm font-medium text-slate-500">Nil Staff Health Registry History</td></tr>
               )}
             </tbody>
           </table>
@@ -143,22 +143,22 @@ const FirstAid: React.FC = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-0 animate-in zoom-in-95 border-2 border-slate-300 overflow-hidden">
-            <div className="p-6 border-b-2 border-slate-100 flex justify-between items-center bg-slate-50/50 shadow-sm">
-              <div><h2 className="text-xl font-bold text-slate-900 uppercase tracking-tight leading-none">Record Occurrence</h2><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Health & Safety Registry</p></div>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-300 hover:text-slate-900 p-1 transition-colors"><X size={24}/></button>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md animate-in zoom-in-95 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+              <div><h2 className="text-lg font-bold text-slate-900">Record Occurrence</h2><p className="text-sm font-medium text-slate-500">Health & Safety Registry</p></div>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 transition-colors"><X size={20}/></button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div className="bg-slate-50 p-4 rounded-xl shadow-inner border border-slate-200 space-y-4">
-                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Subject Name</label><input type="text" required value={personName} onChange={e => setPersonName(e.target.value)} className={inputClass} placeholder="Full Legal Name"/></div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                <div><label className="block text-sm font-medium text-slate-700 mb-1">Subject Name</label><input type="text" required value={personName} onChange={e => setPersonName(e.target.value)} className={inputClass} placeholder="Full Legal Name"/></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Classification</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Classification</label>
                     <select value={type} onChange={e => setType(e.target.value as 'Injury' | 'Illness' | 'Near Miss')} className={inputClass}><option value="Injury">Injury</option><option value="Illness">Illness</option><option value="Near Miss">Near Miss</option></select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Outcome</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Outcome</label>
                     <select value={outcome} onChange={e => setOutcome(e.target.value as FirstAidLog['outcome'])} className={inputClass}>
                       <option value="Returned to Work">Returned to Work</option>
                       <option value="Restricted Duties">Restricted Duties</option>
@@ -174,11 +174,11 @@ const FirstAid: React.FC = () => {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Event Location</label><input type="text" value={location} onChange={e => setLocation(e.target.value)} className={inputClass} placeholder="e.g. Flight Arena"/></div>
-                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Treatment Action</label><input type="text" value={treatment} onChange={e => setTreatment(e.target.value)} className={inputClass} placeholder="e.g. Wound Cleaned"/></div>
+                <div><label className="block text-sm font-medium text-slate-700 mb-1">Event Location</label><input type="text" value={location} onChange={e => setLocation(e.target.value)} className={inputClass} placeholder="e.g. Flight Arena"/></div>
+                <div><label className="block text-sm font-medium text-slate-700 mb-1">Treatment Action</label><input type="text" value={treatment} onChange={e => setTreatment(e.target.value)} className={inputClass} placeholder="e.g. Wound Cleaned"/></div>
               </div>
-              <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Full Incident Narrative</label><textarea required rows={3} value={description} onChange={e => setDescription(e.target.value)} className={`${inputClass} resize-none h-24 font-medium`} placeholder="Detailed account of what happened..."/></div>
-              <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl active:scale-95">Commit to Registry</button>
+              <div><label className="block text-sm font-medium text-slate-700 mb-1">Full Incident Narrative</label><textarea required rows={3} value={description} onChange={e => setDescription(e.target.value)} className={`${inputClass} resize-none h-24`} placeholder="Detailed account of what happened..."/></div>
+              <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors shadow-sm">Commit to Registry</button>
             </form>
           </div>
         </div>
