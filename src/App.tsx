@@ -23,6 +23,7 @@ import SafetyDrills from './features/safety/tabs/SafetyDrills';
 import SiteMaintenance from './features/safety/tabs/SiteMaintenance';
 import ReportsDashboard from './features/reports/ReportsDashboard';
 import { processSyncQueue, prune14DayCache, startRealtimeSubscription } from './lib/syncEngine';
+import PwaManager from './components/ui/PwaManager';
 
 export default function App() {
   const { initialize, isLoading, session } = useAuthStore();
@@ -76,6 +77,7 @@ export default function App() {
 
   return (
     <AppProvider>
+      <PwaManager />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>

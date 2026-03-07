@@ -10,7 +10,9 @@ import {
   FileText,
   ChevronRight,
   Scale,
-  Eye
+  Eye,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveAs } from 'file-saver';
@@ -80,6 +82,9 @@ const REPORTS: ReportDefinition[] = [
 
 const SECTIONS = ['All Sections', 'Owls', 'Raptors', 'Mammals', 'Reptiles', 'Exotics'];
 
+import { useAuthStore } from '../../store/authStore';
+import { useOrgSettings } from '../settings/useOrgSettings';
+
 export default function ReportsDashboard() {
   const [activeReportId, setActiveReportId] = useState('husbandry');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -87,10 +92,14 @@ export default function ReportsDashboard() {
   const [selectedSection, setSelectedSection] = useState('All Sections');
   const [isSectionOpen, setIsSectionOpen] = useState(false);
   
+  const { currentUser } = useAuthStore();
+  const { settings } = useOrgSettings();
+  
   // Preview State
   const [docBlob, setDocBlob] = useState<Blob | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previewZoom, setPreviewZoom] = useState<number>(1);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const activeReport = REPORTS.find(r => r.id === activeReportId) || REPORTS[0];
@@ -203,7 +212,14 @@ export default function ReportsDashboard() {
         activeReport.title,
         "Kent Owl Academy Compliance Report",
         activeReport.columns,
-        data
+        data,
+        {
+          logoUrl: settings?.logo_url,
+          reportName: activeReport.title,
+          startDate,
+          endDate,
+          generatedBy: currentUser?.name || 'Staff Member'
+        }
       );
       setDocBlob(blob);
 
@@ -350,18 +366,39 @@ export default function ReportsDashboard() {
             <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900">Live Preview</h3>
               {docBlob && (
-                <button
-                  onClick={handleDownload}
-                  className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  Download Report (.docx)
-                </button>
+                <div className="flex items-center">
+                  <div className="flex items-center gap-1 bg-white border border-slate-300 rounded-md px-1 py-1 mr-4">
+                    <button 
+                      onClick={() => setPreviewZoom(z => Math.max(0.5, z - 0.1))}
+                      className="p-1 hover:bg-slate-100 rounded text-slate-600 transition-colors"
+                      title="Zoom Out"
+                    >
+                      <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm font-medium text-slate-700 w-12 text-center">
+                      {Math.round(previewZoom * 100)}%
+                    </span>
+                    <button 
+                      onClick={() => setPreviewZoom(z => Math.min(2, z + 0.1))}
+                      className="p-1 hover:bg-slate-100 rounded text-slate-600 transition-colors"
+                      title="Zoom In"
+                    >
+                      <ZoomIn className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleDownload}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download Report (.docx)
+                  </button>
+                </div>
               )}
             </div>
 
             {/* DOCX Preview Container */}
-            <div className="w-full min-h-[800px] bg-slate-100 border border-slate-300 rounded overflow-y-auto p-8 flex justify-center relative">
+            <div className="w-full h-[800px] overflow-auto rounded-b-xl border-x border-b border-slate-300 bg-[#f8f9fa] relative">
               {!docBlob && !isPreviewLoading && !error && (
                 <div className="flex flex-col items-center justify-center text-slate-400 absolute inset-0 pointer-events-none">
                   <FileText className="w-16 h-16 mb-4 opacity-20" />
@@ -375,16 +412,15 @@ export default function ReportsDashboard() {
                 </div>
               )}
               {isPreviewLoading && (
-                <div className="flex flex-col items-center justify-center text-slate-400 absolute inset-0 z-10 bg-slate-100/50">
+                <div className="flex flex-col items-center justify-center text-slate-400 absolute inset-0 z-10 bg-[#f8f9fa]/80">
                   <Loader2 className="w-12 h-12 mb-4 animate-spin text-blue-500" />
                   <p className="text-sm font-medium">Generating document preview...</p>
                 </div>
               )}
               
-              <div 
-                ref={previewContainerRef} 
-                className={`${docBlob && !isPreviewLoading ? 'block' : 'hidden'} w-full max-w-[210mm] bg-white shadow-xl min-h-[297mm]`}
-              />
+              <div style={{ zoom: previewZoom } as React.CSSProperties} className={`${docBlob && !isPreviewLoading ? 'block' : 'hidden'}`}>
+                <div ref={previewContainerRef}></div>
+              </div>
             </div>
           </div>
         </div>

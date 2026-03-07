@@ -40,12 +40,13 @@ const getWmoDescription = (code: number): string => {
   return 'Unknown';
 };
 
-export const getFullWeather = async (address: string = 'Kent, UK'): Promise<FullWeatherData> => {
+export const getFullWeather = async (address: string = 'Maidstone, Kent, UK'): Promise<FullWeatherData> => {
   let lat = 51.27;
   let lon = 0.52;
 
   try {
-    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(address)}&count=1`);
+    const query = address.split(',')[0].trim();
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1`);
     const geoData = await geoRes.json();
     if (geoData.results && geoData.results.length > 0) {
       lat = geoData.results[0].latitude;

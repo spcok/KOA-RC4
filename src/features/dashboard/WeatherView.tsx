@@ -28,7 +28,7 @@ const WeatherView: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const weather = await getFullWeather(settings?.address || 'Kent, UK');
+        const weather = await getFullWeather('Maidstone, Kent, UK');
         
         if (isMounted) {
           if (weather) {

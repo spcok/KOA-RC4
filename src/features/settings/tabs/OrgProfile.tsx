@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useOrgSettings } from '../useOrgSettings';
@@ -21,7 +21,7 @@ const schema = z.object({
 const OrgProfile: React.FC = () => {
   const { settings, isLoading, saveSettings } = useOrgSettings();
   const [isUploading, setIsUploading] = useState(false);
-  const { register, handleSubmit, control, setValue } = useForm<OrgProfileSettings>({
+  const { register, handleSubmit, setValue, watch } = useForm<OrgProfileSettings>({
     resolver: zodResolver(schema),
     defaultValues: settings
   });
@@ -34,14 +34,14 @@ const OrgProfile: React.FC = () => {
     }
   }, [settings, isLoading, setValue]);
 
-  const logoUrl = useWatch({ control, name: 'logo_url' });
+  const logoUrl = watch('logo_url');
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setIsUploading(true);
       try {
         const url = await uploadFile(e.target.files[0], 'logos');
-        setValue('logo_url', url);
+        setValue('logo_url', url, { shouldValidate: true, shouldDirty: true });
       } catch (error) {
         console.error('Upload failed', error);
         alert('Upload failed');

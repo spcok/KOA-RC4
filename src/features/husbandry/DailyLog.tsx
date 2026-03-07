@@ -29,7 +29,7 @@ const DailyLog: React.FC = () => {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const weather = await getFullWeather(settings?.address || 'Kent, UK');
+        const weather = await getFullWeather(settings?.address || 'Maidstone, Kent');
         if (weather && weather.current) {
           setCurrentOutdoorTemp(Math.round(weather.current.temperature));
         }
