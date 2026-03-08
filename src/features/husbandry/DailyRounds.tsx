@@ -4,7 +4,7 @@ import { Animal, AnimalCategory } from '../../types';
 import { 
     ClipboardCheck, Sun, Moon, Check, X, Droplets, Lock, 
     Heart, AlertTriangle, ShieldCheck, PenTool, Loader2, Calendar as CalendarIcon,
-    Info
+    Info, Snowflake
 } from 'lucide-react';
 import { useDailyRoundData } from './useDailyRoundData';
 
@@ -42,7 +42,8 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
         handleSignOff,
         currentUser,
         completedChecks,
-        totalAnimals
+        totalAnimals,
+        freezingRisks
     } = useDailyRoundData(viewDate);
 
     const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -136,6 +137,8 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
                             ? (state.isAlive !== undefined && (state.isSecure || !!state.securityIssue))
                             : (state.isAlive !== undefined && state.isWatered && (state.isSecure || !!state.securityIssue));
                         
+                        const isFreezingRisk = freezingRisks[animal.id];
+
                         return (
                             <div key={animal.id} className={`bg-white border-2 rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-6 transition-all ${isDone ? 'border-emerald-100 shadow-sm' : (state.isAlive === false || state.securityIssue) ? 'border-rose-100 bg-rose-50' : 'border-slate-200'}`}>
                                 <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -153,6 +156,7 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
                                         <div className="flex gap-2 mt-1.5">
                                             {state.isAlive === false && (<span className="text-[8px] font-black text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-widest"><AlertTriangle size={10}/> Health Issue</span>)}
                                             {state.securityIssue && (<span className="text-[8px] font-black text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-widest"><ShieldCheck size={10}/> Security Alert</span>)}
+                                            {isFreezingRisk && (<span className="text-[8px] font-black text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-widest"><Snowflake size={10}/> Ice Risk</span>)}
                                         </div>
                                     </div>
                                 </div>

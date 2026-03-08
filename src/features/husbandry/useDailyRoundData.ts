@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AnimalCategory, DailyRound, Animal } from '../../types';
+import { AnimalCategory, DailyRound, Animal, LogType, LogEntry } from '../../types';
 import { db } from '../../lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
@@ -15,6 +15,8 @@ interface AnimalCheckState {
 export function useDailyRoundData(viewDate: string) {
     const liveAnimals = useHybridQuery<Animal[]>('animals', () => db.animals.toArray(), []);
     const allAnimals = useMemo(() => liveAnimals || [], [liveAnimals]);
+
+    const liveLogs = useHybridQuery<LogEntry[]>('daily_logs', () => db.daily_logs.where('log_date').startsWith(viewDate).toArray(), [viewDate]);
 
     const [roundType, setRoundType] = useState<'Morning' | 'Evening'>('Morning');
     const [activeTab, setActiveTab] = useState<AnimalCategory>(AnimalCategory.OWLS);
@@ -38,6 +40,21 @@ export function useDailyRoundData(viewDate: string) {
     const categoryAnimals = useMemo(() => {
         return allAnimals.filter(a => a.category === activeTab);
     }, [allAnimals, activeTab]);
+
+    const freezingRisks = useMemo(() => {
+        const risks: Record<string, boolean> = {};
+        if (!liveLogs) return risks;
+
+        categoryAnimals.forEach(animal => {
+            if (animal.water_tipping_temp !== undefined) {
+                const tempLog = liveLogs.find(l => l.animal_id === animal.id && l.log_type === LogType.TEMPERATURE);
+                if (tempLog && tempLog.temperature_c !== undefined && tempLog.temperature_c <= animal.water_tipping_temp) {
+                    risks[animal.id] = true;
+                }
+            }
+        });
+        return risks;
+    }, [categoryAnimals, liveLogs]);
 
     const toggleHealth = (id: string, issue?: string) => {
         setChecks(prev => {
@@ -151,6 +168,7 @@ export function useDailyRoundData(viewDate: string) {
         handleSignOff,
         currentUser,
         completedChecks,
-        totalAnimals
+        totalAnimals,
+        freezingRisks
     };
 }

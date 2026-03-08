@@ -226,6 +226,18 @@ const AnimalFormModal: React.FC<AnimalFormModalProps> = ({ isOpen, onClose, init
                                         {(Object.values(HazardRating) as string[]).map(h => <option key={String(h)} value={h}>{h}</option>)}
                                     </select>
                                 </div>
+                                <div>
+                                    <label className={labelClass}>Water Tipping Temp (°C)</label>
+                                    <input 
+                                        type="number" 
+                                        step="0.1"
+                                        {...register('water_tipping_temp', { 
+                                            setValueAs: v => v === "" ? undefined : parseFloat(v) 
+                                        })} 
+                                        className={inputClass} 
+                                        placeholder="e.g. 2.0" 
+                                    />
+                                </div>
                                 <div className="flex flex-col justify-end">
                                     <label className="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-md border border-slate-300 hover:border-blue-500 transition-all">
                                         <input type="checkbox" {...register('is_venomous')} />

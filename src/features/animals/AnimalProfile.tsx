@@ -345,6 +345,12 @@ const AnimalProfile: React.FC<AnimalProfileProps> = ({ animalId, onBack }) => {
                                             <span className="text-sm text-slate-500">Hazard Class</span>
                                             <span className="text-sm font-semibold text-rose-600">{String(animal.hazard_rating)}</span>
                                         </div>
+                                        {animal.water_tipping_temp !== undefined && (
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-slate-500">Water Tipping Temp</span>
+                                                <span className="text-sm font-semibold text-blue-600">{animal.water_tipping_temp}°C</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

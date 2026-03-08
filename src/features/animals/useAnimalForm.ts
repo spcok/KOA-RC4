@@ -35,6 +35,7 @@ export const animalFormSchema = z.object({
   display_order: z.number(),
   archived: z.boolean(),
   is_quarantine: z.boolean(),
+  water_tipping_temp: z.number().optional(),
 });
 
 export type AnimalFormData = z.infer<typeof animalFormSchema>;
@@ -76,6 +77,7 @@ export function useAnimalForm({ initialData, onClose }: UseAnimalFormProps) {
       display_order: initialData.display_order || 0,
       archived: initialData.archived || false,
       is_quarantine: initialData.is_quarantine || false,
+      water_tipping_temp: initialData.water_tipping_temp,
     } : {
       name: '',
       species: '',
@@ -103,6 +105,7 @@ export function useAnimalForm({ initialData, onClose }: UseAnimalFormProps) {
       display_order: 0,
       archived: false,
       is_quarantine: false,
+      water_tipping_temp: undefined,
     },
   });
 

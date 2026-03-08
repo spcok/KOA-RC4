@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AnimalCategory, LogType, LogEntry, Animal } from '../../types';
 import { db } from '../../lib/db';
+import { v4 as uuidv4 } from 'uuid';
 import { useHybridQuery, mutateOnlineFirst } from '../../lib/dataEngine';
 
 export const useDailyLogData = (viewDate: string, activeCategory: AnimalCategory) => {
@@ -36,7 +37,7 @@ export const useDailyLogData = (viewDate: string, activeCategory: AnimalCategory
 
   const handleQuickCheck = async (animalId: string, type: LogType) => {
     const newLog: LogEntry = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       animal_id: animalId,
       log_type: type,
       log_date: viewDate,
@@ -56,11 +57,11 @@ export const useDailyLogData = (viewDate: string, activeCategory: AnimalCategory
       }
     } else {
       const newLog: LogEntry = {
-        id: crypto.randomUUID(),
+        ...entry, // Spread first!
+        id: uuidv4(), // Guarantee the ID is set and cannot be overwritten
         animal_id: entry.animal_id || '',
         log_type: entry.log_type || LogType.WEIGHT,
         log_date: entry.log_date || viewDate,
-        ...entry,
         created_at: new Date().toISOString(),
         created_by: 'System',
       } as LogEntry;

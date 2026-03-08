@@ -135,6 +135,7 @@ export interface Animal {
   archive_type?: 'Disposition' | 'Death';
   is_quarantine?: boolean;
   distribution_map_url?: string;
+  water_tipping_temp?: number;
 }
 
 export interface LogEntry {
