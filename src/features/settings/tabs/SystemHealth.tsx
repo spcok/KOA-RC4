@@ -1,9 +1,9 @@
 import React from 'react';
-import { Activity, Database, AlertTriangle, Loader2, Wifi, WifiOff, CloudCog } from 'lucide-react';
+import { Activity, Database, AlertTriangle, Loader2, Wifi, WifiOff, CloudCog, Smartphone, ShieldCheck, FileJson, AppWindow, CheckCircle2, XCircle } from 'lucide-react';
 import { useSystemHealthData } from '../useSystemHealthData';
 
 const SystemHealth: React.FC = () => {
-  const { isOnline, isHydrating, tableCounts, handleForceRebuild } = useSystemHealthData();
+  const { isOnline, isHydrating, pwaHealth, tableCounts, handleForceRebuild } = useSystemHealthData();
 
   return (
     <div className="max-w-6xl space-y-8 animate-in slide-in-from-right-4 duration-300 pb-24">
@@ -32,6 +32,58 @@ const SystemHealth: React.FC = () => {
               </div>
             </div>
             <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
+          </div>
+        </div>
+
+        {/* Mobile & App Health */}
+        <div className="bg-white p-6 rounded-[2rem] border-2 border-slate-200 shadow-sm space-y-6">
+          <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+            <Smartphone size={16} className="text-emerald-500" /> Mobile & App Health
+          </h4>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center gap-3">
+                <ShieldCheck size={18} className={pwaHealth.isSecure ? 'text-emerald-500' : 'text-amber-500'} />
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Connection Security</p>
+                  <p className="text-xs font-bold text-slate-700">{pwaHealth.isSecure ? 'Secure / HTTPS' : 'Insecure'}</p>
+                </div>
+              </div>
+              {pwaHealth.isSecure ? <CheckCircle2 size={16} className="text-emerald-500" /> : <XCircle size={16} className="text-amber-500" />}
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center gap-3">
+                <Activity size={18} className={pwaHealth.swActive ? 'text-emerald-500' : 'text-rose-500'} />
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Offline Engine</p>
+                  <p className="text-xs font-bold text-slate-700">{pwaHealth.swActive ? 'Service Worker Active' : 'Service Worker Missing'}</p>
+                </div>
+              </div>
+              {pwaHealth.swActive ? <CheckCircle2 size={16} className="text-emerald-500" /> : <XCircle size={16} className="text-rose-500" />}
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center gap-3">
+                <FileJson size={18} className={pwaHealth.manifestValid ? 'text-emerald-500' : 'text-rose-500'} />
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">App Manifest</p>
+                  <p className="text-xs font-bold text-slate-700">{pwaHealth.manifestValid ? 'Configuration Valid' : 'Manifest or Icons missing'}</p>
+                </div>
+              </div>
+              {pwaHealth.manifestValid ? <CheckCircle2 size={16} className="text-emerald-500" /> : <XCircle size={16} className="text-rose-500" />}
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center gap-3">
+                <AppWindow size={18} className="text-blue-500" />
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Mode</p>
+                  <p className="text-xs font-bold text-slate-700">{pwaHealth.isInstalled ? 'Running as Installed App' : 'Running via Browser'}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

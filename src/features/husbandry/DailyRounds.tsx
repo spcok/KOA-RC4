@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Animal, AnimalCategory } from '../../types';
 import { 
     ClipboardCheck, Sun, Moon, Check, X, Droplets, Lock, 
@@ -15,6 +16,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 
 const DailyRounds: React.FC<DailyRoundsProps> = () => {
     const { view_daily_rounds } = usePermissions();
+    const { isSidebarCollapsed } = useOutletContext<{ isSidebarCollapsed: boolean }>();
     const [viewDate, setViewDate] = useState(new Date().toISOString().split('T')[0]);
 
     const {
@@ -88,6 +90,9 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
 
     const tabs = (Object.values(AnimalCategory) as string[]).filter(cat => !['ALL', 'REPTILES', 'INVERTEBRATES', 'AMPHIBIANS'].includes(cat)) as AnimalCategory[];
 
+    const footerLeftClass = isSidebarCollapsed ? 'md:left-20' : 'md:left-64';
+    const maxWidthClass = isSidebarCollapsed ? 'max-w-6xl' : 'max-w-4xl';
+
     return (
         <div className="flex flex-col min-h-full bg-slate-50">
             <div className="bg-white border-b border-slate-200 px-4 py-4 sticky top-0 z-20 shadow-sm">
@@ -118,7 +123,7 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
                 </div>
             </div>
 
-            <div className="p-4 space-y-3 pb-64 max-w-4xl mx-auto w-full">
+            <div className={`p-4 space-y-3 pb-64 mx-auto w-full transition-all duration-300 ${maxWidthClass}`}>
                 {(categoryAnimals || []).length === 0 ? (
                     <div className="text-center py-12 opacity-50">
                         <Info className="mx-auto mb-2 text-slate-300" size={32}/>
@@ -183,8 +188,8 @@ const DailyRounds: React.FC<DailyRoundsProps> = () => {
                 )}
             </div>
 
-            <div className="bg-white border-t-2 border-slate-200 p-4 fixed bottom-0 left-0 md:left-64 right-0 z-30 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                <div className="max-w-4xl mx-auto space-y-4">
+            <div className={`bg-white border-t-2 border-slate-200 p-4 fixed bottom-0 left-0 ${footerLeftClass} right-0 z-30 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] transition-all duration-300`}>
+                <div className={`mx-auto space-y-4 transition-all duration-300 ${maxWidthClass}`}>
                     <div>
                         <div className="flex justify-between items-end mb-1.5">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{String(activeTab)} Section Progress</span>

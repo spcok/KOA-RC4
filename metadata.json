@@ -1,5 +1,5 @@
 {
-  "name": "Remix: Kent Owl Academy V2 - Supabase implementation 2",
+  "name": "Koa-beta",
   "description": "Clean room transplant of the Kent Owl Academy Management System (V2) with mocked auth and local-first architecture.",
   "requestFramePermissions": []
 }

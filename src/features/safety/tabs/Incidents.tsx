@@ -47,7 +47,8 @@ const Incidents: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      await addIncident({
+      
+      const incidentData = {
           date: new Date(date), 
           time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), 
           type: type, 
@@ -56,10 +57,20 @@ const Incidents: React.FC = () => {
           location: location || 'Site Wide', 
           status: 'Open', 
           reported_by: 'SYS',
-      });
-      setIsModalOpen(false);
-      setDescription('');
-      setLocation('');
+      };
+
+      try {
+          // Close modal and reset form immediately for better UX
+          setIsModalOpen(false);
+          setDescription('');
+          setLocation('');
+          
+          await addIncident(incidentData);
+      } catch (error) {
+          console.error("Failed to commit incident to ledger:", error);
+          // If it failed critically, we might want to inform the user, 
+          // but mutateOnlineFirst handles offline queuing automatically.
+      }
   };
 
   const inputClass = "w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-slate-400";

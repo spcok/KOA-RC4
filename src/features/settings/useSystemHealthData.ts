@@ -6,8 +6,37 @@ import { forceHydrateFromCloud } from '../../lib/syncEngine';
 export function useSystemHealthData() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isHydrating, setIsHydrating] = useState(false);
+  const [pwaHealth, setPwaHealth] = useState({
+    isSecure: window.isSecureContext,
+    swActive: false,
+    manifestValid: false,
+    isInstalled: window.matchMedia('(display-mode: standalone)').matches
+  });
 
   useEffect(() => {
+    const checkPwaHealth = async () => {
+      const swActive = !!navigator.serviceWorker?.controller;
+      let manifestValid = false;
+      
+      try {
+        const res = await fetch('/manifest.json', { cache: 'no-store' });
+        if (res.ok) {
+          const manifest = await res.json();
+          manifestValid = !!(manifest.icons && manifest.icons.length > 0);
+        }
+      } catch (e) {
+        console.error('Manifest check failed', e);
+      }
+
+      setPwaHealth(prev => ({
+        ...prev,
+        swActive,
+        manifestValid
+      }));
+    };
+
+    checkPwaHealth();
+    
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     
@@ -56,6 +85,7 @@ export function useSystemHealthData() {
   return { 
     isOnline, 
     isHydrating, 
+    pwaHealth,
     tableCounts: tableCounts || { animals: 0, users: 0, daily_logs: 0, tasks: 0, medical_logs: 0 },
     handleForceRebuild 
   };
