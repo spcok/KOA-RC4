@@ -60,7 +60,6 @@ const DailyLog: React.FC = () => {
                   animal_id: animal.id,
                   log_type: LogType.TEMPERATURE,
                   log_date: viewDate,
-                  temperature_c: temp,
                   value: `${temp}°C`,
                   notes: weather.current.description
                 });
@@ -90,7 +89,6 @@ const DailyLog: React.FC = () => {
           animal_id: animalId,
           log_type: LogType.TEMPERATURE,
           log_date: viewDate,
-          temperature_c: temp,
           value: `${temp}°C`,
           notes: weather.current.description
         });
@@ -197,10 +195,10 @@ const DailyLog: React.FC = () => {
                   <span className="w-full text-center truncate px-0.5 text-[9px] sm:text-xs font-bold text-slate-900">{logs.weight && logs.weight.weight_grams !== undefined ? formatWeightDisplay(logs.weight.weight_grams, animal.weight_unit) : '--'}</span>
                 </button>
                 
-                <div className="relative flex items-center">
+                <div className="flex items-stretch gap-1 sm:gap-2">
                   <button 
                     onClick={() => handleCellClick(animal.id, LogType.TEMPERATURE, logs.temp)}
-                    className="w-full p-1 sm:p-3 rounded-lg sm:rounded-xl border border-dashed border-slate-300 min-w-0 hover:border-emerald-500 hover:text-emerald-600 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2"
+                    className="flex-1 p-1 sm:p-3 rounded-lg sm:rounded-xl border border-dashed border-slate-300 min-w-0 hover:border-emerald-500 hover:text-emerald-600 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2"
                   >
                     <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase">ENV</span>
                     <span className="w-full text-center truncate px-0.5 text-[9px] sm:text-xs font-bold text-slate-900">
@@ -209,9 +207,9 @@ const DailyLog: React.FC = () => {
                         : mammalLoadingId === animal.id 
                           ? '☁️...' 
                           : logs.temp 
-                            ? `${logs.temp.temperature_c}°C` 
+                            ? String(logs.temp.value || '--')
                             : animal.category === AnimalCategory.EXOTICS 
-                              ? 'Basking °C / Cool °C' 
+                              ? 'Basking / Cool' 
                               : '--'}
                     </span>
                   </button>
@@ -219,7 +217,7 @@ const DailyLog: React.FC = () => {
                     <button
                       onClick={(e) => { e.stopPropagation(); handleMammalWeatherFetch(animal.id); }}
                       disabled={mammalLoadingId === animal.id}
-                      className="absolute right-1 sm:right-2 p-1 text-slate-400 hover:text-emerald-500 transition-colors bg-white rounded-md"
+                      className="shrink-0 px-2 sm:px-3 flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50 text-slate-400 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 transition-all shadow-sm"
                       title="Fetch local weather"
                     >
                       {mammalLoadingId === animal.id ? <Loader2 size={14} className="animate-spin" /> : '☁️'}
