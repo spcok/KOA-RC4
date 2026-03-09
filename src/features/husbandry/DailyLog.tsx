@@ -14,6 +14,8 @@ const DailyLog: React.FC = () => {
   const { view_daily_logs } = usePermissions();
   const [activeCategory, setActiveCategory] = useState<AnimalCategory>(AnimalCategory.OWLS);
   const [viewDate, setViewDate] = useState(new Date().toISOString().split('T')[0]);
+  const [animalEnvNotes, setAnimalEnvNotes] = useState<Record<string, string>>({});
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
   const { settings } = useOrgSettings();
   const [currentOutdoorTemp, setCurrentOutdoorTemp] = useState<number | undefined>();
 
@@ -27,18 +29,34 @@ const DailyLog: React.FC = () => {
   } = useDailyLogData(viewDate, activeCategory);
 
   useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        const weather = await getFullWeather(settings?.address || 'Maidstone, Kent');
-        if (weather && weather.current) {
-          setCurrentOutdoorTemp(Math.round(weather.current.temperature));
+    const today = new Date().toISOString().split('T')[0];
+    if (viewDate === today) {
+      const fetchWeather = async () => {
+        setIsWeatherLoading(true);
+        try {
+          const weather = await getFullWeather(settings?.address || 'Maidstone, Kent');
+          if (weather && weather.current) {
+            setCurrentOutdoorTemp(Math.round(weather.current.temperature));
+            const weatherString = `${Math.round(weather.current.temperature)}°C, ${weather.current.description}`;
+            setAnimalEnvNotes(prev => {
+              const newNotes = { ...prev };
+              animals.forEach(animal => {
+                if (!newNotes[animal.id]) {
+                  newNotes[animal.id] = weatherString;
+                }
+              });
+              return newNotes;
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch weather for DailyLog', error);
+        } finally {
+          setIsWeatherLoading(false);
         }
-      } catch (error) {
-        console.error('Failed to fetch weather for DailyLog', error);
-      }
-    };
-    fetchWeather();
-  }, [settings?.address]);
+      };
+      fetchWeather();
+    }
+  }, [viewDate, settings?.address, animals]);
 
   const { isSidebarCollapsed } = useOutletContext<{ isSidebarCollapsed?: boolean }>() || { isSidebarCollapsed: false };
 
@@ -126,7 +144,7 @@ const DailyLog: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-1 sm:gap-2 flex-1 min-w-0">
+              <div className="grid grid-cols-4 gap-1 sm:gap-2 flex-1 min-w-0">
                 <button 
                   onClick={() => handleCellClick(animal.id, LogType.WEIGHT, logs.weight)}
                   className="p-1 sm:p-3 rounded-lg sm:rounded-xl border border-dashed border-slate-300 min-w-0 hover:border-emerald-500 hover:text-emerald-600 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2"
@@ -141,6 +159,13 @@ const DailyLog: React.FC = () => {
                   <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase">ENV</span>
                   <span className="w-full text-center truncate px-0.5 text-[9px] sm:text-xs font-bold text-slate-900">{logs.temp ? `${logs.temp.temperature_c}°C` : '--'}</span>
                 </button>
+                <input 
+                  type="text"
+                  value={animalEnvNotes[animal.id] || ''}
+                  onChange={(e) => setAnimalEnvNotes({...animalEnvNotes, [animal.id]: e.target.value})}
+                  className="p-1 sm:p-3 rounded-lg sm:rounded-xl border border-slate-300 min-w-0 text-[9px] sm:text-xs"
+                  placeholder={isWeatherLoading ? "☁️..." : "Notes"}
+                />
                 <button 
                   onClick={() => handleCellClick(animal.id, LogType.FEED, logs.feed)}
                   className="p-1 sm:p-3 rounded-lg sm:rounded-xl border border-dashed border-slate-300 min-w-0 hover:border-emerald-500 hover:text-emerald-600 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2"
