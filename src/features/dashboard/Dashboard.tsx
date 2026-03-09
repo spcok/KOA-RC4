@@ -257,12 +257,12 @@ const Dashboard: React.FC<DashboardProps> = ({
           <table className="w-full text-left text-[10px] md:text-[11px] lg:text-sm">
             <thead className="bg-white border-b border-slate-200 text-slate-600 font-medium">
               <tr>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Name</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden md:table-cell">Species</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden lg:table-cell">Ring/Microchip</th>
-                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Today's Weight</th>
+                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-normal break-words min-w-[90px] max-w-[140px] md:max-w-[250px] leading-tight">Name</th>
+                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden xl:table-cell">Species</th>
+                <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden 2xl:table-cell">Ring/Microchip</th>
+                <th className={`px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap ${activeTab === AnimalCategory.EXOTICS ? 'hidden' : ''}`}>Today's Weight</th>
                 <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap">Today's Feed</th>
-                <th className={`px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-normal leading-tight ${activeTab === AnimalCategory.OWLS || activeTab === AnimalCategory.RAPTORS ? '' : 'hidden md:table-cell'}`}>Last Fed</th>
+                <th className={`px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-normal leading-tight ${activeTab === AnimalCategory.EXOTICS ? 'hidden' : (activeTab === AnimalCategory.OWLS || activeTab === AnimalCategory.RAPTORS ? '' : 'hidden md:table-cell')}`}>Last Fed</th>
                 <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap hidden md:table-cell">Location</th>
                 <th className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 whitespace-nowrap"></th>
               </tr>
@@ -271,16 +271,16 @@ const Dashboard: React.FC<DashboardProps> = ({
               {(filteredAnimals || []).map(animal => {
                 return (
                   <tr key={animal.id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => onSelectAnimal(animal)}>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 font-semibold text-slate-900 whitespace-nowrap">{animal.name}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-500 whitespace-nowrap hidden md:table-cell">{animal.species}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap hidden lg:table-cell">{animal.displayId}</td>
-                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap">
+                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 font-semibold text-slate-900 whitespace-normal break-words min-w-[90px] max-w-[140px] md:max-w-[250px] leading-tight">{animal.name}</td>
+                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-500 whitespace-nowrap hidden xl:table-cell">{animal.species}</td>
+                    <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap hidden 2xl:table-cell">{animal.displayId}</td>
+                    <td className={`px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap ${activeTab === AnimalCategory.EXOTICS ? 'hidden' : ''}`}>
                       {animal.todayWeight ? getWeightDisplay(animal.todayWeight, animal.weight_unit) : '-'}
                     </td>
                     <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-nowrap">
                       {animal.todayFeed ? (typeof animal.todayFeed.value === 'string' ? animal.todayFeed.value : String(animal.todayFeed.value || 'Fed')) : '-'}
                     </td>
-                    <td className={`px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-normal text-[10px] leading-tight min-w-[60px] ${activeTab === AnimalCategory.OWLS || activeTab === AnimalCategory.RAPTORS ? '' : 'hidden md:table-cell'}`}>{animal.lastFedStr}</td>
+                    <td className={`px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-slate-400 whitespace-normal text-[10px] leading-tight min-w-[60px] ${activeTab === AnimalCategory.EXOTICS ? 'hidden' : (activeTab === AnimalCategory.OWLS || activeTab === AnimalCategory.RAPTORS ? '' : 'hidden md:table-cell')}`}>{animal.lastFedStr}</td>
                     <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-blue-500 whitespace-nowrap hidden md:table-cell">{animal.location}</td>
                     <td className="px-1.5 py-1 md:px-2 md:py-1.5 lg:px-6 lg:py-4 text-right whitespace-nowrap">
                       <button className="p-1.5 border border-slate-200 rounded-md hover:bg-slate-100 text-slate-600" onClick={(e) => { e.stopPropagation(); /* handle add action */ }}>

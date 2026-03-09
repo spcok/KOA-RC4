@@ -8,6 +8,7 @@ export interface MissingRecordAlert {
   id: string;
   animal_id: string;
   animal_name: string;
+  animal_category: string;
   alert_type: 'Missing Weight' | 'Missing Feed' | 'Overdue Checkup' | 'Missing Details';
   days_overdue: number;
   severity: 'High' | 'Medium';
@@ -17,6 +18,7 @@ export interface MissingRecordAlert {
 export interface HusbandryLogStatus {
   animal_id: string;
   animal_name: string;
+  animal_category: string;
   weights: boolean[]; // 7 days
   feeds: boolean[];   // 7 days
 }
@@ -64,6 +66,7 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
           id: `weight-${animal.id}`,
           animal_id: animal.id,
           animal_name: animal.name,
+          animal_category: animal.category,
           alert_type: 'Missing Weight',
           days_overdue: 999,
           severity: 'Medium',
@@ -77,6 +80,7 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
             id: `weight-${animal.id}`,
             animal_id: animal.id,
             animal_name: animal.name,
+            animal_category: animal.category,
             alert_type: 'Missing Weight',
             days_overdue: diffDays,
             severity: 'Medium',
@@ -98,6 +102,7 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
           id: `feed-${animal.id}`,
           animal_id: animal.id,
           animal_name: animal.name,
+          animal_category: animal.category,
           alert_type: 'Missing Feed',
           days_overdue: 999,
           severity: 'Medium',
@@ -111,6 +116,7 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
             id: `feed-${animal.id}`,
             animal_id: animal.id,
             animal_name: animal.name,
+            animal_category: animal.category,
             alert_type: 'Missing Feed',
             days_overdue: diffDays,
             severity: 'Medium',
@@ -137,6 +143,7 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
           id: `medical-${animal.id}`,
           animal_id: animal.id,
           animal_name: animal.name,
+          animal_category: animal.category,
           alert_type: 'Overdue Checkup',
           days_overdue: 999,
           severity: 'High',
@@ -150,6 +157,7 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
             id: `medical-${animal.id}`,
             animal_id: animal.id,
             animal_name: animal.name,
+            animal_category: animal.category,
             alert_type: 'Overdue Checkup',
             days_overdue: diffDays,
             severity: 'High',
@@ -164,6 +172,7 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
           id: `details-${animal.id}`,
           animal_id: animal.id,
           animal_name: animal.name,
+          animal_category: animal.category,
           alert_type: 'Missing Details',
           days_overdue: 0,
           severity: 'Medium',
@@ -200,7 +209,7 @@ export function useMissingRecordsData(anchorDate: Date = new Date()) {
         weights[i] = dayLogs.some(l => l.log_type === LogType.WEIGHT);
         feeds[i] = dayLogs.some(l => l.log_type === LogType.FEED);
       }
-      status.push({ animal_id: animal.id, animal_name: animal.name, weights, feeds });
+      status.push({ animal_id: animal.id, animal_name: animal.name, animal_category: animal.category, weights, feeds });
     }
     return status;
   }, [animalsRaw, dailyLogsRaw, anchorDate]);

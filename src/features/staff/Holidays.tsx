@@ -23,17 +23,17 @@ export default function Holidays() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6">
-      <div className="flex justify-between items-center bg-slate-50/80 backdrop-blur-md py-4 border-b border-slate-200">
+    <div className="max-w-6xl mx-auto space-y-8 animate-in slide-in-from-right-4 duration-300 pb-24 p-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-slate-200 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3 uppercase tracking-tight">
+          <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
             <Palmtree className="text-emerald-600" size={28} /> Holiday Registry
-          </h1>
-          <p className="text-slate-500 text-sm font-medium">Official records of staff leave and availability.</p>
+          </h3>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Official records of staff leave and availability.</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)} 
-          className="bg-slate-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 hover:bg-black transition-all active:scale-95 font-black uppercase text-xs tracking-widest"
+          className="bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-all shadow-md"
         >
           <Plus size={18}/> Request Leave
         </button>
@@ -41,7 +41,7 @@ export default function Holidays() {
 
       <div className="grid grid-cols-1 gap-4">
         {(holidays || []).map(holiday => (
-          <div key={holiday.id} className="bg-white rounded-2xl border-2 border-slate-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md transition-all">
+          <div key={holiday.id} className="bg-white rounded-[2rem] border-2 border-slate-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md transition-all">
             <div className="flex items-center gap-4 w-full md:w-auto">
               <div className="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center font-black text-xs border-2 border-white shadow-lg shrink-0">
                 {String(holiday.staff_name).split(' ').map(n => n[0]).join('')}
@@ -88,7 +88,7 @@ export default function Holidays() {
           </div>
         ))}
         {(holidays || []).length === 0 && (
-          <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 py-24 text-center">
+          <div className="bg-white rounded-[2rem] border-2 border-dashed border-slate-200 py-24 text-center">
             <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Nil Leave Registry Records</p>
           </div>
         )}
