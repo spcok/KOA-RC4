@@ -9,6 +9,7 @@ export interface EnhancedAnimal extends Animal {
   todayFeed?: LogEntry;
   lastFedStr: string;
   displayId: string;
+  nextFeedTask?: { due_date: string; notes?: string };
 }
 
 export interface AnimalStatsData {
@@ -136,18 +137,26 @@ export function useDashboardData(activeTab: AnimalCategory, viewDate: string) {
         ? (animal.ring_number || '-') 
         : (animal.microchip_id || '-');
 
+      const upcomingFeeds = (tasks || [])
+        .filter(t => (t.animal_id === animal.id) && (t.type === LogType.FEED) && !t.completed)
+        .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+
+      const nextFeed = upcomingFeeds[0];
+      const nextFeedTask = nextFeed ? { due_date: nextFeed.due_date, notes: nextFeed.notes } : undefined;
+
       return {
         ...animal,
         todayWeight,
         todayFeed,
         lastFedStr,
-        displayId
+        displayId,
+        nextFeedTask
       };
     });
     
     const timer = setTimeout(() => setFilteredAnimals(enhanced), 0);
     return () => clearTimeout(timer);
-  }, [liveAnimals, activeTab, searchTerm, sortOption, logs, allLogs]);
+  }, [liveAnimals, activeTab, searchTerm, sortOption, logs, allLogs, tasks]);
 
   const toggleOrderLock = (locked: boolean) => setIsOrderLocked(locked);
   const reorderAnimals = (newOrder: EnhancedAnimal[]) => setFilteredAnimals(newOrder);

@@ -3,6 +3,7 @@ import { ShieldCheck, Loader2, Trash2, UserPlus, AlertTriangle } from 'lucide-re
 import { mutateOnlineFirst } from '../../../lib/dataEngine';
 import { User, UserRole, RolePermissionConfig } from '../../../types';
 import EditUserModal from './EditUserModal';
+import UserFormModal from '../components/UserFormModal';
 import { useUsersData } from '../useUsersData';
 
 const permissionLabels: Record<keyof Omit<RolePermissionConfig, 'role' | 'id'>, string> = {
@@ -48,8 +49,9 @@ const permissionLabels: Record<keyof Omit<RolePermissionConfig, 'role' | 'id'>, 
 };
 
 const UsersView: React.FC = () => {
-  const { users, isLoading, deleteUser } = useUsersData();
+  const { users, isLoading, deleteUser, addUser } = useUsersData();
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -65,11 +67,19 @@ const UsersView: React.FC = () => {
     }
   };
 
+  const handleAddUser = async (data: Omit<User, 'id'>) => {
+    await addUser(data);
+    setIsAddModalOpen(false);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-bold text-slate-900">Staff Directory</h3>
-        <button className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700"
+        >
           <UserPlus size={18} />
           Add Staff
         </button>
@@ -114,6 +124,7 @@ const UsersView: React.FC = () => {
         </table>
       </div>
       {editingUser && <EditUserModal user={editingUser} onClose={() => setEditingUser(null)} />}
+      {isAddModalOpen && <UserFormModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSave={handleAddUser} />}
     </div>
   );
 };

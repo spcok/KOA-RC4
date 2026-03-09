@@ -6,7 +6,7 @@ import {
   AlertOctagon, Clock, Settings as SettingsIcon, LogOut, Menu, Power, X,
   ChevronLeft, ChevronRight,
   HelpCircle, FileText, Calendar, ClipboardCheck, Wifi, WifiOff, ShieldCheck,
-  ZoomIn, ZoomOut
+  ZoomIn, ZoomOut, Utensils
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -71,19 +71,27 @@ const Layout: React.FC<LayoutProps> = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [textSize, setTextSize] = useState<'text-sm' | 'text-base' | 'text-lg' | 'text-xl'>('text-base');
+  const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large' | 'xlarge'>('medium');
 
   const increaseTextSize = () => {
-    const sizes: ('text-sm' | 'text-base' | 'text-lg' | 'text-xl')[] = ['text-sm', 'text-base', 'text-lg', 'text-xl'];
-    const currentIndex = sizes.indexOf(textSize);
-    if (currentIndex < sizes.length - 1) setTextSize(sizes[currentIndex + 1]);
+    const sizes: ('small' | 'medium' | 'large' | 'xlarge')[] = ['small', 'medium', 'large', 'xlarge'];
+    const currentIndex = sizes.indexOf(fontSize);
+    if (currentIndex < sizes.length - 1) setFontSize(sizes[currentIndex + 1]);
   };
 
   const decreaseTextSize = () => {
-    const sizes: ('text-sm' | 'text-base' | 'text-lg' | 'text-xl')[] = ['text-sm', 'text-base', 'text-lg', 'text-xl'];
-    const currentIndex = sizes.indexOf(textSize);
-    if (currentIndex > 0) setTextSize(sizes[currentIndex - 1]);
+    const sizes: ('small' | 'medium' | 'large' | 'xlarge')[] = ['small', 'medium', 'large', 'xlarge'];
+    const currentIndex = sizes.indexOf(fontSize);
+    if (currentIndex > 0) setFontSize(sizes[currentIndex - 1]);
   };
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (fontSize === 'small') root.style.fontSize = '14px';
+    else if (fontSize === 'large') root.style.fontSize = '18px';
+    else if (fontSize === 'xlarge') root.style.fontSize = '20px';
+    else root.style.fontSize = '16px';
+  }, [fontSize]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -121,6 +129,7 @@ const Layout: React.FC<LayoutProps> = () => {
         <NavItem to="/weather" icon={CloudSun} label="Weather" permission={true} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
         <NavItem to="/daily-log" icon={ClipboardList} label="Daily Log" permission={view_daily_logs} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
         <NavItem to="/tasks" icon={ListTodo} label="To-Do List" permission={view_tasks} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+        <NavItem to="/feeding-schedule" icon={Utensils} label="Feeding Schedule" permission={true} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
         <SectionHeader title="Animal Care" isSidebarCollapsed={isSidebarCollapsed} />
         <NavItem to="/medical" icon={Stethoscope} label="Medical Records" permission={view_medical} isSidebarCollapsed={isSidebarCollapsed} setIsMobileMenuOpen={setIsMobileMenuOpen} />
@@ -247,7 +256,7 @@ const Layout: React.FC<LayoutProps> = () => {
       </aside>
 
       {/* Main Content */}
-      <main className={`flex-1 flex flex-col min-w-0 relative overflow-x-hidden print:overflow-visible ${textSize}`}>
+      <main className="flex-1 flex flex-col min-w-0 relative overflow-x-hidden print:overflow-visible">
         {/* Mobile Top Navbar */}
         <header className="md:hidden h-16 bg-[#1c1c1e] border-b border-slate-800 flex items-center justify-between px-4 z-50 no-print shadow-lg shrink-0">
           <div className="flex items-center gap-3">

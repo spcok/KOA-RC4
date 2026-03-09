@@ -36,6 +36,11 @@ export const animalFormSchema = z.object({
   archived: z.boolean(),
   is_quarantine: z.boolean(),
   water_tipping_temp: z.number().optional(),
+  target_day_temp_c: z.number().optional(),
+  target_night_temp_c: z.number().optional(),
+  target_humidity_min_percent: z.number().optional(),
+  target_humidity_max_percent: z.number().optional(),
+  misting_frequency: z.string().optional(),
 });
 
 export type AnimalFormData = z.infer<typeof animalFormSchema>;

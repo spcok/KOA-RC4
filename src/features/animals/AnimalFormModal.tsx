@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { X, Check, Camera, Sparkles, Loader2, Zap, Shield, History, Info, Globe, Skull, Users } from 'lucide-react';
+import { X, Check, Camera, Sparkles, Loader2, Zap, Shield, History, Info, Globe, Skull, Users, Thermometer } from 'lucide-react';
 import { Animal, AnimalCategory, HazardRating, ConservationStatus } from '../../types';
 import { useAnimalForm } from './useAnimalForm';
 
@@ -22,13 +22,30 @@ const AnimalFormModal: React.FC<AnimalFormModalProps> = ({ isOpen, onClose, init
     errors,
   } = useAnimalForm({ initialData, onClose });
 
-  const { register, watch } = form;
+  const { register, watch, setValue } = form;
 
-  // Watch fields for conditional rendering and previews
   const category = watch('category');
   const imageUrl = watch('image_url');
   const distroUrl = watch('distribution_map_url');
   const isBird = category === AnimalCategory.OWLS || category === AnimalCategory.RAPTORS;
+
+  // Track if Environmental Controls are required
+  const [envNa, setEnvNa] = useState<boolean>(
+      initialData ? (!initialData.target_day_temp_c && !initialData.target_night_temp_c && !initialData.target_humidity_min_percent && !initialData.misting_frequency) : true
+  );
+
+  const handleEnvNaToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const isNa = e.target.checked;
+      setEnvNa(isNa);
+      if (isNa) {
+          // Clear out the values if N/A is checked so they wipe from the DB
+          setValue('target_day_temp_c', null);
+          setValue('target_night_temp_c', null);
+          setValue('target_humidity_min_percent', null);
+          setValue('target_humidity_max_percent', null);
+          setValue('misting_frequency', null);
+      }
+  };
 
   if (!isOpen) return null;
 
@@ -226,18 +243,29 @@ const AnimalFormModal: React.FC<AnimalFormModalProps> = ({ isOpen, onClose, init
                                         {(Object.values(HazardRating) as string[]).map(h => <option key={String(h)} value={h}>{h}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className={labelClass}>Water Tipping Temp (°C)</label>
-                                    <input 
-                                        type="number" 
-                                        step="0.1"
-                                        {...register('water_tipping_temp', { 
-                                            setValueAs: v => v === "" ? undefined : parseFloat(v) 
-                                        })} 
-                                        className={inputClass} 
-                                        placeholder="e.g. 2.0" 
-                                    />
-                                </div>
+                                
+                                {isBird ? (
+                                    <div>
+                                        <label className={labelClass}>Water Tipping Temp (°C)</label>
+                                        <input 
+                                            type="number" 
+                                            step="0.1"
+                                            {...register('water_tipping_temp', { 
+                                                setValueAs: v => v === "" ? null : parseFloat(v) 
+                                            })} 
+                                            className={inputClass} 
+                                            placeholder="e.g. 2.0" 
+                                        />
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label className={labelClass}>Water Tipping Temp (°C)</label>
+                                        <div className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm text-slate-400 cursor-not-allowed text-center font-medium shadow-inner">
+                                            N/A for {category}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="flex flex-col justify-end">
                                     <label className="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-md border border-slate-300 hover:border-blue-500 transition-all">
                                         <input type="checkbox" {...register('is_venomous')} />
@@ -246,6 +274,54 @@ const AnimalFormModal: React.FC<AnimalFormModalProps> = ({ isOpen, onClose, init
                                 </div>
                             </div>
                         </section>
+
+                        {/* NEW: TARGET ENVIRONMENT SECTION */}
+                        <section className="space-y-4">
+                            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <Thermometer size={18}/> Target Environment
+                                </h3>
+                                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200 hover:bg-slate-100 transition-colors">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={envNa} 
+                                        onChange={handleEnvNaToggle}
+                                        className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                                    />
+                                    <span className="text-xs font-bold text-slate-700 uppercase tracking-widest mt-0.5">N/A (No Temp Controls)</span>
+                                </label>
+                            </div>
+                            
+                            {!envNa ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                    <div>
+                                        <label className={labelClass}>Day Temp (°C)</label>
+                                        <input type="number" step="0.1" {...register('target_day_temp_c', { setValueAs: v => v === "" ? null : parseFloat(v) })} className={inputClass} placeholder="28.5" />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Night Temp (°C)</label>
+                                        <input type="number" step="0.1" {...register('target_night_temp_c', { setValueAs: v => v === "" ? null : parseFloat(v) })} className={inputClass} placeholder="22.0" />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Min Humidity %</label>
+                                        <input type="number" {...register('target_humidity_min_percent', { setValueAs: v => v === "" ? null : parseInt(v) })} className={inputClass} placeholder="60" />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Max Humidity %</label>
+                                        <input type="number" {...register('target_humidity_max_percent', { setValueAs: v => v === "" ? null : parseInt(v) })} className={inputClass} placeholder="80" />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Misting Freq.</label>
+                                        <input type="text" {...register('misting_frequency')} className={inputClass} placeholder="e.g. Twice Daily" />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="w-full px-3 py-6 bg-slate-50 border border-dashed border-slate-300 rounded-lg text-sm text-slate-400 text-center font-medium shadow-inner">
+                                    Environmental controls disabled for this subject.
+                                </div>
+                            )}
+                        </section>
+
                     </div>
                 </div>
 

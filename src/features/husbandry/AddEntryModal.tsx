@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Save, Loader2 } from 'lucide-react';
 import { Animal, LogType, LogEntry, AnimalCategory } from '../../types';
+import { getFullWeather } from '../../services/weatherService';
 
 interface AddEntryModalProps {
   isOpen: boolean;
@@ -39,6 +40,27 @@ const AddEntryModal: React.FC<AddEntryModalProps> = ({
   const [coolTemp, setCoolTemp] = useState<number | ''>(existingLog?.cool_temp_c || '');
   const [temperature, setTemperature] = useState<number | ''>(existingLog?.temperature_c ?? defaultTemperature ?? '');
   const [healthRecordType, setHealthRecordType] = useState(existingLog?.health_record_type || '');
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+
+  useEffect(() => {
+    if (logType === LogType.TEMPERATURE && temperature === '' && !existingLog) {
+      const fetchWeather = async () => {
+        setIsWeatherLoading(true);
+        try {
+          const weather = await getFullWeather();
+          if (weather && weather.current) {
+            setTemperature(Math.round(weather.current.temperature));
+            setNotes(prev => prev ? `${prev} | ${weather.current.description}` : weather.current.description);
+          }
+        } catch (error) {
+          console.error('Failed to auto-fetch weather', error);
+        } finally {
+          setIsWeatherLoading(false);
+        }
+      };
+      fetchWeather();
+    }
+  }, [logType, temperature, existingLog]);
 
   if (!isOpen) return null;
 
@@ -179,8 +201,15 @@ const AddEntryModal: React.FC<AddEntryModalProps> = ({
               onChange={e => setTemperature(e.target.value ? Number(e.target.value) : '')}
               className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-0 transition-all font-bold"
               required
+              disabled={isWeatherLoading}
             />
-            {defaultTemperature !== undefined && !existingLog && temperature === defaultTemperature && (
+            {isWeatherLoading && (
+              <div className="flex items-center gap-2 text-xs text-emerald-600 mt-2">
+                <Loader2 size={14} className="animate-spin" />
+                <span>☁️ Auto-fetching local weather...</span>
+              </div>
+            )}
+            {!isWeatherLoading && defaultTemperature !== undefined && !existingLog && temperature === defaultTemperature && (
               <p className="text-xs text-slate-500 mt-1">Auto-filled from local weather</p>
             )}
           </div>

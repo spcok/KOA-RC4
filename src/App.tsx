@@ -7,6 +7,7 @@ import LoginScreen from './features/auth/LoginScreen';
 import DashboardContainer from './features/dashboard/DashboardContainer';
 import WeatherView from './features/dashboard/WeatherView';
 import Tasks from './features/husbandry/Tasks';
+import FeedingSchedule from './features/husbandry/FeedingSchedule';
 import DailyLog from './features/husbandry/DailyLog';
 import DailyRounds from './features/husbandry/DailyRounds';
 import MedicalRecords from './features/medical/MedicalRecords';
@@ -86,6 +87,7 @@ export default function App() {
             <Route path="weather" element={<div className="p-8"><WeatherView /></div>} />
             <Route path="daily-log" element={<DailyLog />} />
             <Route path="tasks" element={<Tasks />} />
+            <Route path="feeding-schedule" element={<FeedingSchedule />} />
             <Route path="daily-rounds" element={<DailyRounds />} />
 
             {/* PHASE 4: MEDICAL & QUARANTINE */}
