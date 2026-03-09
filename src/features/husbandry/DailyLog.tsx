@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AnimalCategory, LogType, LogEntry } from '../../types';
 import { ClipboardList, ChevronLeft, ChevronRight, Loader2, Lock } from 'lucide-react';
@@ -14,10 +14,11 @@ const DailyLog: React.FC = () => {
   const { view_daily_logs } = usePermissions();
   const [activeCategory, setActiveCategory] = useState<AnimalCategory>(AnimalCategory.OWLS);
   const [viewDate, setViewDate] = useState(new Date().toISOString().split('T')[0]);
-  const [animalEnvNotes, setAnimalEnvNotes] = useState<Record<string, string>>({});
   const [isWeatherLoading, setIsWeatherLoading] = useState(false);
   const { settings } = useOrgSettings();
   const [currentOutdoorTemp, setCurrentOutdoorTemp] = useState<number | undefined>();
+  const processedAnimals = useRef<Set<string>>(new Set());
+  const [mammalLoadingId, setMammalLoadingId] = useState<string | null>(null);
 
   const { 
     animals, 
@@ -28,35 +29,78 @@ const DailyLog: React.FC = () => {
     addLogEntry
   } = useDailyLogData(viewDate, activeCategory);
 
+  // Reset processed animals when viewDate changes
+  useEffect(() => {
+    processedAnimals.current.clear();
+  }, [viewDate]);
+
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    if (viewDate === today) {
-      const fetchWeather = async () => {
-        setIsWeatherLoading(true);
-        try {
-          const weather = await getFullWeather(settings?.address || 'Maidstone, Kent');
-          if (weather && weather.current) {
-            setCurrentOutdoorTemp(Math.round(weather.current.temperature));
-            const weatherString = `${Math.round(weather.current.temperature)}°C, ${weather.current.description}`;
-            setAnimalEnvNotes(prev => {
-              const newNotes = { ...prev };
-              animals.forEach(animal => {
-                if (!newNotes[animal.id]) {
-                  newNotes[animal.id] = weatherString;
-                }
+    if (viewDate === today && animals.length > 0) {
+      const animalsToProcess = animals.filter(a => 
+        (a.category === AnimalCategory.OWLS || a.category === AnimalCategory.RAPTORS) && 
+        !processedAnimals.current.has(a.id) && 
+        !getTodayLog(a.id, LogType.TEMPERATURE)
+      );
+      
+      if (animalsToProcess.length > 0) {
+        // Mark as processed immediately to avoid infinite loop
+        animalsToProcess.forEach(a => processedAnimals.current.add(a.id));
+        
+        const fetchWeather = async () => {
+          setIsWeatherLoading(true);
+          try {
+            const weather = await getFullWeather(settings?.address || 'Maidstone, Kent');
+            if (weather && weather.current) {
+              const temp = Math.round(weather.current.temperature);
+              setCurrentOutdoorTemp(temp);
+              
+              animalsToProcess.forEach(animal => {
+                addLogEntry({
+                  animal_id: animal.id,
+                  log_type: LogType.TEMPERATURE,
+                  log_date: viewDate,
+                  temperature_c: temp,
+                  value: `${temp}°C`,
+                  notes: weather.current.description
+                });
               });
-              return newNotes;
-            });
+            }
+          } catch (error) {
+            console.error('Failed to fetch weather for DailyLog', error);
+            // Revert processed status on failure so it can retry
+            animalsToProcess.forEach(a => processedAnimals.current.delete(a.id));
+          } finally {
+            setIsWeatherLoading(false);
           }
-        } catch (error) {
-          console.error('Failed to fetch weather for DailyLog', error);
-        } finally {
-          setIsWeatherLoading(false);
-        }
-      };
-      fetchWeather();
+        };
+        fetchWeather();
+      }
     }
-  }, [viewDate, settings?.address, animals]);
+  }, [viewDate, settings?.address, animals, getTodayLog, addLogEntry]);
+
+  const handleMammalWeatherFetch = async (animalId: string) => {
+    setMammalLoadingId(animalId);
+    try {
+      const weather = await getFullWeather(settings?.address || 'Maidstone, Kent');
+      if (weather && weather.current) {
+        const temp = Math.round(weather.current.temperature);
+        setCurrentOutdoorTemp(temp);
+        addLogEntry({
+          animal_id: animalId,
+          log_type: LogType.TEMPERATURE,
+          log_date: viewDate,
+          temperature_c: temp,
+          value: `${temp}°C`,
+          notes: weather.current.description
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch weather for Mammal', error);
+    } finally {
+      setMammalLoadingId(null);
+    }
+  };
 
   const { isSidebarCollapsed } = useOutletContext<{ isSidebarCollapsed?: boolean }>() || { isSidebarCollapsed: false };
 
@@ -144,7 +188,7 @@ const DailyLog: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-1 sm:gap-2 flex-1 min-w-0">
+              <div className="grid grid-cols-3 gap-1 sm:gap-2 flex-1 min-w-0">
                 <button 
                   onClick={() => handleCellClick(animal.id, LogType.WEIGHT, logs.weight)}
                   className="p-1 sm:p-3 rounded-lg sm:rounded-xl border border-dashed border-slate-300 min-w-0 hover:border-emerald-500 hover:text-emerald-600 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2"
@@ -152,20 +196,37 @@ const DailyLog: React.FC = () => {
                   <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase">WT</span>
                   <span className="w-full text-center truncate px-0.5 text-[9px] sm:text-xs font-bold text-slate-900">{logs.weight && logs.weight.weight_grams !== undefined ? formatWeightDisplay(logs.weight.weight_grams, animal.weight_unit) : '--'}</span>
                 </button>
-                <button 
-                  onClick={() => handleCellClick(animal.id, LogType.TEMPERATURE, logs.temp)}
-                  className="p-1 sm:p-3 rounded-lg sm:rounded-xl border border-dashed border-slate-300 min-w-0 hover:border-emerald-500 hover:text-emerald-600 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2"
-                >
-                  <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase">ENV</span>
-                  <span className="w-full text-center truncate px-0.5 text-[9px] sm:text-xs font-bold text-slate-900">{logs.temp ? `${logs.temp.temperature_c}°C` : '--'}</span>
-                </button>
-                <input 
-                  type="text"
-                  value={animalEnvNotes[animal.id] || ''}
-                  onChange={(e) => setAnimalEnvNotes({...animalEnvNotes, [animal.id]: e.target.value})}
-                  className="p-1 sm:p-3 rounded-lg sm:rounded-xl border border-slate-300 min-w-0 text-[9px] sm:text-xs"
-                  placeholder={isWeatherLoading ? "☁️..." : "Notes"}
-                />
+                
+                <div className="relative flex items-center">
+                  <button 
+                    onClick={() => handleCellClick(animal.id, LogType.TEMPERATURE, logs.temp)}
+                    className="w-full p-1 sm:p-3 rounded-lg sm:rounded-xl border border-dashed border-slate-300 min-w-0 hover:border-emerald-500 hover:text-emerald-600 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2"
+                  >
+                    <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase">ENV</span>
+                    <span className="w-full text-center truncate px-0.5 text-[9px] sm:text-xs font-bold text-slate-900">
+                      {isWeatherLoading && !logs.temp && (animal.category === AnimalCategory.OWLS || animal.category === AnimalCategory.RAPTORS) 
+                        ? '☁️...' 
+                        : mammalLoadingId === animal.id 
+                          ? '☁️...' 
+                          : logs.temp 
+                            ? `${logs.temp.temperature_c}°C` 
+                            : animal.category === AnimalCategory.EXOTICS 
+                              ? 'Basking °C / Cool °C' 
+                              : '--'}
+                    </span>
+                  </button>
+                  {animal.category === AnimalCategory.MAMMALS && !logs.temp && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleMammalWeatherFetch(animal.id); }}
+                      disabled={mammalLoadingId === animal.id}
+                      className="absolute right-1 sm:right-2 p-1 text-slate-400 hover:text-emerald-500 transition-colors bg-white rounded-md"
+                      title="Fetch local weather"
+                    >
+                      {mammalLoadingId === animal.id ? <Loader2 size={14} className="animate-spin" /> : '☁️'}
+                    </button>
+                  )}
+                </div>
+
                 <button 
                   onClick={() => handleCellClick(animal.id, LogType.FEED, logs.feed)}
                   className="p-1 sm:p-3 rounded-lg sm:rounded-xl border border-dashed border-slate-300 min-w-0 hover:border-emerald-500 hover:text-emerald-600 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2"
